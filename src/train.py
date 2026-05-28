@@ -88,8 +88,14 @@ def split_by_date(
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", choices=["fh", "pwc", "tb"], default="fh")
-    ap.add_argument("--filter", choices=["none", "fixed_pwc"], default="none",
+    ap.add_argument("--filter", choices=["none", "fixed_pwc", "adaptive_pwc"], default="none",
                     help="Sample filter applied to training set (orthogonal to label).")
+    ap.add_argument("--adaptive-lookback", type=int, default=20,
+                    help="Volatility lookback window for adaptive_pwc CPD")
+    ap.add_argument("--adaptive-sigma", type=float, default=2.0,
+                    help="Sigma multiplier for change-point detection")
+    ap.add_argument("--adaptive-threshold", type=float, default=0.08,
+                    help="Cumulative-since-CP return threshold for adaptive filter")
     ap.add_argument("--horizon", type=int, default=5)
     ap.add_argument("--threshold", type=float, default=0.03,
                     help="FH up threshold (label=fh)")
@@ -156,6 +162,24 @@ def main():
         n_total = int(sample_filter.notna().sum())
         logger.info(
             f"Filter fixed_pwc (past_r{args.pwc_past_window} <= +{args.pwc_past_threshold}): "
+            f"kept {n_kept:,} / {n_total:,} ({n_kept / max(n_total,1):.2%})"
+        )
+    elif args.filter == "adaptive_pwc":
+        from src.onset.simple_cpd import adaptive_cumret
+        # Build daily simple return if not present
+        df["_ret_1"] = df.groupby("ts_code")["close"].pct_change(1)
+        cum_since_cp = adaptive_cumret(
+            df, return_col="_ret_1",
+            lookback=args.adaptive_lookback,
+            sigma_mult=args.adaptive_sigma,
+        )
+        # Single-direction filter: cum_since_cp <= +threshold
+        sample_filter = cum_since_cp <= args.adaptive_threshold
+        n_kept = int(sample_filter.sum())
+        n_total = int(sample_filter.notna().sum())
+        logger.info(
+            f"Filter adaptive_pwc (cum_since_cp <= +{args.adaptive_threshold}, "
+            f"lookback={args.adaptive_lookback}, sigma={args.adaptive_sigma}): "
             f"kept {n_kept:,} / {n_total:,} ({n_kept / max(n_total,1):.2%})"
         )
 
