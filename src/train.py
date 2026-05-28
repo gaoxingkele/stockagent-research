@@ -21,6 +21,7 @@ import pandas as pd
 
 from src.labels.fixed_horizon import fixed_horizon_label
 from src.labels.fixed_window_pwc import fixed_window_pwc_label
+from src.labels.triple_barrier import triple_barrier_label
 from src.models.lgbm_baseline import LGBMConfig, predict_signal, train
 from src.evaluation.metrics import summary
 
@@ -86,11 +87,19 @@ def split_by_date(
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--label", choices=["fh", "pwc"], default="fh")
+    ap.add_argument("--label", choices=["fh", "pwc", "tb"], default="fh")
+    ap.add_argument("--filter", choices=["none", "fixed_pwc"], default="none",
+                    help="Sample filter applied to training set (orthogonal to label).")
     ap.add_argument("--horizon", type=int, default=5)
     ap.add_argument("--threshold", type=float, default=0.03,
-                    help="FH up threshold (for fh) or up_threshold (for pwc)")
+                    help="FH up threshold (label=fh)")
+    # PWC params (used by --label pwc OR --filter fixed_pwc)
+    ap.add_argument("--pwc-past-window", type=int, default=5)
     ap.add_argument("--pwc-past-threshold", type=float, default=0.08)
+    # TB params
+    ap.add_argument("--tb-u", type=float, default=0.08, help="TB upper barrier (profit)")
+    ap.add_argument("--tb-d", type=float, default=0.05, help="TB lower barrier (stop)")
+    ap.add_argument("--tb-h", type=int, default=20, help="TB vertical (time) barrier")
     ap.add_argument("--train-start", default="20220104")
     ap.add_argument("--train-end", default="20250101")
     ap.add_argument("--val-end", default="20250701")
@@ -115,21 +124,40 @@ def main():
     if args.label == "fh":
         y = fixed_horizon_label(df, horizon=args.horizon, threshold_up=args.threshold)
         label_meta = {"type": "fh", "horizon": args.horizon, "threshold_up": args.threshold}
-    else:
+    elif args.label == "pwc":
         y = fixed_window_pwc_label(
             df, horizon=args.horizon,
             up_threshold=0.10, dd_threshold=0.05,
-            past_window=5, past_threshold=args.pwc_past_threshold,
+            past_window=args.pwc_past_window, past_threshold=args.pwc_past_threshold,
         )
         label_meta = {"type": "pwc", "horizon": args.horizon,
                       "up_threshold": 0.10, "dd_threshold": 0.05,
-                      "past_window": 5, "past_threshold": args.pwc_past_threshold}
+                      "past_window": args.pwc_past_window,
+                      "past_threshold": args.pwc_past_threshold}
+    else:  # tb
+        y = triple_barrier_label(df, u=args.tb_u, d=args.tb_d, H=args.tb_h)
+        label_meta = {"type": "tb", "u": args.tb_u, "d": args.tb_d, "H": args.tb_h}
 
     valid_mask = (y != -127)
     pos_rate = (y == 1).mean()
     neg_rate = (y == -1).mean()
     logger.info(f"Label {args.label}: +1 = {pos_rate:.2%}, -1 = {neg_rate:.2%}, "
                 f"valid = {valid_mask.mean():.2%}")
+
+    # Optional sample filter (orthogonal to label) — Gate 1 critical mechanism
+    sample_filter = None
+    if args.filter == "fixed_pwc":
+        g = df.groupby("ts_code")["close"]
+        past_r = df["close"] / g.shift(args.pwc_past_window) - 1.0
+        # Single-direction filter (v3c / paper §2.6 Definition 3): past_r <= +τ
+        # (Asymmetric, justified by short-sale constraint — paper §1.3 Proposition 3.)
+        sample_filter = past_r <= args.pwc_past_threshold
+        n_kept = int(sample_filter.sum())
+        n_total = int(sample_filter.notna().sum())
+        logger.info(
+            f"Filter fixed_pwc (past_r{args.pwc_past_window} <= +{args.pwc_past_threshold}): "
+            f"kept {n_kept:,} / {n_total:,} ({n_kept / max(n_total,1):.2%})"
+        )
 
     # Features
     features = select_feature_columns(df)
@@ -148,6 +176,17 @@ def main():
     va_idx = va_idx[y.loc[va_idx] != -127]
     te_idx = te_idx[y.loc[te_idx] != -127]
     logger.info(f"After label filter: train={len(tr_idx):,} val={len(va_idx):,} test={len(te_idx):,}")
+
+    # Sample filter (training only — never filter the test set, otherwise we leak filter design)
+    if sample_filter is not None:
+        before_tr, before_va = len(tr_idx), len(va_idx)
+        tr_idx = tr_idx[sample_filter.loc[tr_idx].fillna(False)]
+        va_idx = va_idx[sample_filter.loc[va_idx].fillna(False)]
+        logger.info(
+            f"After sample_filter '{args.filter}': "
+            f"train {before_tr:,} -> {len(tr_idx):,} "
+            f"val {before_va:,} -> {len(va_idx):,}  (test unfiltered)"
+        )
 
     # Train
     cfg = LGBMConfig(
@@ -180,12 +219,14 @@ def main():
         logger.info(f"  {k}: {v}")
 
     # Save
-    name = args.name or f"{args.label}_h{args.horizon}_seed{args.seed}_{int(time.time())}"
+    suffix = "" if args.filter == "none" else f"_{args.filter}"
+    name = args.name or f"{args.label}{suffix}_h{args.horizon}_seed{args.seed}_{int(time.time())}"
     run_dir = RESULTS / name
     run_dir.mkdir(parents=True, exist_ok=True)
     with open(run_dir / "metrics.json", "w", encoding="utf-8") as f:
         json.dump({
             "label": label_meta,
+            "filter": args.filter,
             "n_features": len(features),
             "n_train": int(len(tr_idx)),
             "n_val": int(len(va_idx)),

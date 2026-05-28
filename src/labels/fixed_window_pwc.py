@@ -63,7 +63,10 @@ def fixed_window_pwc_label(
     # Apply PWC filter + onset rules
     y = pd.Series(0, index=df.index, dtype="int8")
 
-    past_clean = past_r.abs() <= past_threshold  # NOTE: abs to filter both directions
+    # Single-direction filter (matches v3c production / paper §2.6 Definition 3):
+    # exclude only samples already trending UP (past_r > +τ), allow past downward moves.
+    # This is asymmetric — paper §1.3 Proposition 3 (short-sale asymmetry).
+    past_clean = past_r <= past_threshold
 
     bullish = (fwd_r >= up_threshold) & (fwd_dd <= dd_threshold) & past_clean
     bearish = (fwd_r <= -up_threshold) & (fwd_rb <= dd_threshold) & past_clean

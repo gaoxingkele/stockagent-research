@@ -59,6 +59,35 @@ YYYY-MM-DD: <决策标题>
 
 ---
 
+## 2026-05-29: Gate 1 FAIL — PWC sample filter NOT orthogonal to TB label
+
+- **Context**: paper_plan §10.2 / execution_plan §3.3 Gate 1 critical experiment
+- **Setup** (single split, single seed, D1 A 股 2022-2026):
+  - E1.3 TB H=20 alone:                                Top20 Sharpe = 6.76
+  - E1.4 TB H=20 + fixed_pwc filter (双向 |past_r5|≤8%): Sharpe = 2.56 (-62%)
+  - E1.4 v2 same with 单向 past_r5≤+8%:                  Sharpe = 3.62 (-46%)
+  - E1.5 TB H=5 alone (matched horizon):               Sharpe = 10.32
+  - E1.6 TB H=5 + fixed_pwc filter:                    Sharpe = 3.09 (-70%)
+- **Conclusion**: PWC backward sample filter (whether unidirectional or bidirectional, whether H matched or not) is consistently NEGATIVE on TB-labeled training.
+- **But**: PWC AS LABEL still beats FH (E1.2 Sharpe 3.42 vs E1.1 2.00, +71%)
+- **Insight**: PWC's effectiveness arises from JOINT action of (past constraint + sparse 3-class definition + drawdown-bounded path), not from backward filtering alone. TB already implicitly captures path-based filtering through its forward-barrier mechanism, so adding PWC filter is redundant and harmful (creates train/test distribution shift).
+- **Paper impact** (per paper_plan §10.2 decision tree):
+  - Original main claim "PWC is orthogonal backward dimension to LdP forward triple-barrier" is FALSIFIED on this dataset
+  - Target downgrade: KDD A → CIKM / ICDM (still possible)
+  - C2 rewrite needed: "PWC as integrated label engineering for sparse onset detection in asymmetric (short-sale-constrained) markets"
+  - Adaptive PWC (HSSM-based) may or may not change this; sample filter limitation likely persists
+- **Caveats before final FAIL declaration**:
+  - Single split / single seed — should rerun with 5 seeds + walk-forward before paper-grade conclusion
+  - Test set is unfiltered while train set is filtered (potential distribution shift); could test "filter both"
+  - PWC was designed for v3c's 5-day onset definition; the filter mechanism may behave differently when adapted (HSSM Gate 3) — should not foreclose adaptive direction
+- **Next**:
+  - Run E1.7: PWC filter on FH baseline (does it boost weak label? — supplementary evidence)
+  - Run E1.8: filter both train AND test (sanity, not for paper main)
+  - Add 5-seed + walk-forward before any submission
+- **Revisit date**: 2026-07-31 (M2 末 originally; now possibly earlier given main claim shift)
+
+---
+
 ## 2026-05-28: 发现并修复生产 factor_lab 的 forward-looking 字段泄漏
 
 - **Context**: E1.1 第一次跑出 RankIC = 0.5636, IR = 1.47, Sharpe = 20.75 — 远超合理范围 (memory feedback_st_exclude_at_source: IC>0.5 必查泄漏)
