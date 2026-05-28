@@ -56,3 +56,18 @@ YYYY-MM-DD: <决策标题>
 - **Reason**: 这是 paper 故事是否成立的核心赌注, 早做早决策
 - **Affected experiments**: E1.1, E1.2, E1.3, E1.4
 - **Revisit date**: 2026-07-31 (M2 末)
+
+---
+
+## 2026-05-28: 发现并修复生产 factor_lab 的 forward-looking 字段泄漏
+
+- **Context**: E1.1 第一次跑出 RankIC = 0.5636, IR = 1.47, Sharpe = 20.75 — 远超合理范围 (memory feedback_st_exclude_at_source: IC>0.5 必查泄漏)
+- **Diagnostic** (scripts/diag_leakage.py):
+  - spearman(r5, fwd_r5) = +0.8983
+  - r5 本身就是 close.shift(-5)/close - 1 (forward), 不是 past return
+  - 共 10 字段泄漏: r5/r10/r20/r30/r40, dd5/dd10/dd20/dd30/dd40
+- **Root cause**: 生产 factor_lab 用这些字段作为**训练 label 辅助** (pump_score 等), 在研究 panel 里被当 feature merge 进来
+- **Fix**: train.py NON_FEATURE_COLS 加 10 字段黑名单
+- **Future**: build_d1.py 应该在落 panel 时就 rename 这些字段为 `_label_*` 前缀, 防再次误用
+- **Affected experiments**: 所有用 D1 的实验, 必须重跑
+- **Revisit date**: 2026-06-15 (build_d1 重构时)
