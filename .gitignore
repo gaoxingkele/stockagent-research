@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env
+.env
+.venv/
+venv/
+env/
+
+# Data (DVC tracked, not git)
+data/raw/*
+data/processed/*
+data/cache/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/cache/.gitkeep
+
+# Checkpoints / outputs
+checkpoints/*
+!checkpoints/.gitkeep
+results/*
+!results/.gitkeep
+experiments/runs/*
+!experiments/runs/.gitkeep
+
+# MLflow / W&B
+mlruns/
+wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Paper
+paper/*.aux
+paper/*.log
+paper/*.bbl
+paper/*.blg
+paper/*.out
+paper/*.synctex.gz
+paper/main.pdf

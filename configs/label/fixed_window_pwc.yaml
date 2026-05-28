@@ -1,0 +1,7 @@
+name: fixed_window_pwc
+type: PWC_v1
+horizon: 5
+up_threshold: 0.10
+dd_threshold: 0.05
+past_window: 5
+past_threshold: 0.08

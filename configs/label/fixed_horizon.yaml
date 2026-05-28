@@ -1,0 +1,5 @@
+name: fixed_horizon
+type: FH
+horizon: 5
+threshold_up: 0.03
+threshold_down: -0.03

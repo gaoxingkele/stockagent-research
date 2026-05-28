@@ -1,0 +1,13 @@
+# E1.1: LGBM + FH baseline on D1
+# Verification: RankIC > 0.05 (sanity check, easily reachable from production port)
+
+id: e1_1
+description: LGBM + Fixed-Horizon label baseline on D1 (A-shares Tushare)
+gate: none
+mode: walk_forward
+seeds: [42, 0, 1, 2, 3]   # 5-seed required for paper
+
+acceptance:
+  rank_ic_mean_min: 0.03
+  rank_ic_ir_min: 0.5
+  top20_return_sharpe_min: 0.5

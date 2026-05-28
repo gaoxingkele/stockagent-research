@@ -1,0 +1,22 @@
+name: d1_ashares_tushare
+panel_path: data/processed/ashares_tushare_v1.parquet
+universe_path: data/processed/symbol_universe.yaml
+calendar_path: data/processed/trading_calendar.csv
+
+date_col: trade_date
+group_col: ts_code
+price_col: close
+
+train_start: "20180101"
+train_end: "20231231"
+val_start: "20240101"
+val_end: "20240630"
+test_start: "20240701"
+test_end: "20260630"
+
+walk_forward:
+  enabled: true
+  train_window_months: 36
+  val_window_months: 3
+  test_window_months: 1
+  step_months: 1

@@ -1,0 +1,15 @@
+defaults:
+  - data: d1_ashares_tushare
+  - label: fixed_horizon
+  - model: lgbm
+  - experiment: e1_1
+  - _self_
+
+seed: 42
+project_name: stockagent-research
+
+paths:
+  data_dir: ${oc.env:PWD}/data/processed
+  checkpoint_dir: ${oc.env:PWD}/checkpoints
+  result_dir: ${oc.env:PWD}/results
+  run_dir: ${oc.env:PWD}/experiments/runs
