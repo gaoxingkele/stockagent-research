@@ -107,18 +107,94 @@ def apply_v7c_rules(df):
 
 ---
 
-## TODO (Round 2 待 capture)
+## Round 2 Capture (2026-05-29)
 
-- [ ] W 底 / U 底 / 双底等具体形态识别规则
-- [ ] 灾难月的 leading indicators (大盘单日跌幅 + 板块状态)
-- [ ] 板块/市值分层规则（小盘 vs 大盘的启动子是否不同？）
-- [ ] 启动子的 horizon — 5 天固定还是 adaptive？
-- [ ] 突破型 vs 反转型启动子的子类区分
-- [ ] 板块联动信号在启动子识别中的权重
+用户决策 (4 questions answered):
+
+| 维度 | 决策 | Implication |
+|---|---|---|
+| W底 / U底 / 圆弧底子形态 | **不区分**，底部抬高够用 | paper 不展开子形态分类 |
+| 灾难月避免信号 | **复合信号**（指数 + 量能 + 板块状态） | Round 3 专攻：拆解每个组件阈值 |
+| 市值 / 板块分层 | **统一规则**（与 V12.31 一致） | paper 不做分层 ablation |
+| 突破型 vs 反转型 | **不区分**，统一作为 onset | V12.31 的 pyr_velocity_20_60 < p35 已隐式过滤 |
+
+**Round 2 设计原则**：保持简洁，3 维选择简化。这与 V12.31 deployment 哲学一致 — 复杂规则容易 overfit，统一规则在实战上更鲁棒。
+
+## Round 3 Capture (2026-05-29) — 灾难月避免机制
+
+用户决策 (4 questions answered) — 灾难月复合信号设计：
+
+```
+DISASTER_MONTH_SIGNAL = vote(Signal_A, Signal_B, Signal_C) >= 2/3
+```
+
+### Signal A: 指数信号 (AND 双指数)
+```
+sh_index_today < -2.0%  AND  gem_index_today < -3.0%
+```
+- 上证 (大盘代表) + 创业板 (成长代表) 同时大跌
+- AND 设计降低单一指数误报
+
+### Signal B: 量能信号 (OR 三个子条件任一)
+```
+B1: amount_5d_mean / amount_20d_mean < 0.70    # 全市场成交额近 5 日萎缩 > 30%
+B2: limit_down_count > 100  OR  limit_down/limit_up > 3.0   # 跌停股恐慌
+B3: up_stock_pct < 0.30  OR  down_stock_pct > 0.70           # 市场宽度劣化
+```
+- OR 设计：任一量能恶化即触发（量能信号高敏感）
+
+### Signal C: 板块状态 (内层 vote >= 2/3)
+```
+C1: industry_red_pct > 0.80                      # > 80% 一级行业下跌
+C2: top5_hot_concepts_returns 全部 < 0           # Top 5 热概念全绿
+C3: top5_hot_concepts_avg_return < -1.0%         # Top 5 热概念均跌 > 1%
+
+Signal_C = (C1 + C2 + C3) >= 2
+```
+- 板块层面也用 vote 机制 (避免单一概念异动误判)
+
+### 外层 复合规则
+```
+Disaster Month = (Signal_A + Signal_B + Signal_C) >= 2
+```
+- 三个 outer 信号中任 2 触发即视为灾难日
+- 不要求全部触发（AND 太迟钝）
+- 也不接受任一触发（OR 太误报）
+
+### 灾难日触发后
+
+- **当日**: 不入场新启动子
+- **持有期**: 持有的启动子不强平（V12.31 双轨架构持有规则）
+- **持续到**: Signal_A/B/C 都退出灾难状态（vote < 2 即恢复正常）
+- **反向风控**: V12.31 R5 反向 (R20 高 + R5 低 → "先下蹲后起跳") 在灾难月期间**仍然有效**, 见 [[project-reverse-riskctl-0519]]
+
+### 与 V12.31 生产 market_context.py 的对照
+
+生产 `market_context.py` (1629 行) 已有：
+- `MAJOR_INDICES`: 上证 / 沪深 300 / 深成 / 创业板 / 中证 500 / 中证 1000
+- `classify_trend_state`: 8 种趋势状态枚举
+- `_compute_market_score`: 大盘综合评分
+- `_analyze_sector_heats`: 板块热度
+- `_run_vision_analysis`: 视觉 LLM 研判
+- `_get_mkt_moneyflow_signal`: 资金流信号
+- `_fetch_news_hot_topics`: 新闻热点
+
+Paper 中我们 reference 这些 production data sources, 但用 panel data 自己 aggregate 出灾难月信号（不依赖实时 API）, 保证 reproducibility。
+
+---
+
+## TODO (Round 4 待 capture)
+
+其他维度：
+- [ ] 启动子 horizon 是 5 天固定还是 adaptive
+- [ ] 板块联动信号（同板块多股同时 onset）
 - [ ] 龙虎榜数据如何辅助识别真启动子
+- [ ] 概念热度因子作为 onset 加分项
 
 ---
 
 ## Change Log
 
 - **v1 (2026-05-29 Round 1)**: 4 questions captured (bottoms rising, above 5d low, MA pattern, volume, bearish asymmetry)
+- **v1 (2026-05-29 Round 2)**: 4 questions captured (no sub-pattern split, no stratification, no subtype split, composite disaster signal pending)
+- **v1 (2026-05-29 Round 3)**: 4 questions captured (disaster month vote >= 2/3 mechanism, index AND + volume OR + sector inner-vote)
