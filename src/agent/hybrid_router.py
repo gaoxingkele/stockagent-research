@@ -140,6 +140,87 @@ def lgbm_floor_plus_llm_topk(
     return lgbm_rank + boost_mask.astype(float) * boost
 
 
+def regime_disaster_router(
+    df: pd.DataFrame,
+    *,
+    disaster_col: str = "_mkt_is_disaster_month",
+    lgbm_signal_col: str = "lgbm_pump_ratio",
+    llm_signal_col: str = "raw_p_up",
+) -> pd.Series:
+    """F. Disaster months → LLM raw; normal → LGBM.
+
+    Hypothesis: LGBM fails in extreme regimes (Split 2 RankIC -0.002 happened
+    to coincide with V12.31 灾难月 202508?). Route to LLM during disasters.
+    """
+    lgbm_rank = _rankify(df[lgbm_signal_col])
+    llm_rank = _rankify(df[llm_signal_col])
+    is_disaster = df[disaster_col].fillna(False).astype(bool)
+    return pd.Series(np.where(is_disaster, llm_rank, lgbm_rank), index=df.index)
+
+
+def lgbm_llm_disagreement_router(
+    df: pd.DataFrame,
+    *,
+    lgbm_signal_col: str = "lgbm_pump_ratio",
+    llm_signal_col: str = "raw_p_up",
+    disagreement_quantile: float = 0.75,
+    boost: float = 0.20,
+) -> pd.Series:
+    """G. Boost LLM signal where LGBM and LLM disagree the most.
+
+    Disagreement = |lgbm_rank - llm_rank|. High disagreement = LLM brings
+    new information. Default to LGBM, boost candidates where LLM disagrees
+    AND ranks them high.
+    """
+    lgbm_rank = _rankify(df[lgbm_signal_col])
+    llm_rank = _rankify(df[llm_signal_col])
+    disagreement = (lgbm_rank - llm_rank).abs()
+    high_disagreement = disagreement >= disagreement.quantile(disagreement_quantile)
+    llm_bullish = llm_rank >= 0.75
+    boost_mask = high_disagreement & llm_bullish
+    return lgbm_rank + boost_mask.astype(float) * boost
+
+
+def market_regime_ensemble(
+    df: pd.DataFrame,
+    *,
+    disaster_col: str = "_mkt_is_disaster_month",
+    lgbm_signal_col: str = "lgbm_pump_ratio",
+    llm_raw_col: str = "raw_p_up",
+    llm_expert_col: str = "expert_p_up",
+) -> pd.Series:
+    """H. Disaster → LLM raw; otherwise LGBM with LLM-top-quartile boost
+    (essentially H_E inside non-disaster regime).
+    """
+    lgbm_rank = _rankify(df[lgbm_signal_col])
+    llm_raw_rank = _rankify(df[llm_raw_col])
+    is_disaster = df[disaster_col].fillna(False).astype(bool)
+    boost_mask = llm_raw_rank >= 0.75
+    inside_normal = lgbm_rank + boost_mask.astype(float) * 0.15
+    return pd.Series(np.where(is_disaster, llm_raw_rank, inside_normal), index=df.index)
+
+
+def onset_signal_aware_router(
+    df: pd.DataFrame,
+    *,
+    onset_col: str = "_exp_onset_score",
+    lgbm_signal_col: str = "lgbm_pump_ratio",
+    llm_signal_col: str = "raw_p_up",
+    boost: float = 0.30,
+) -> pd.Series:
+    """I. LGBM main; for high-onset-score samples, boost LLM top picks.
+
+    Different from B_stratum: B switches entire decision; I keeps LGBM rank
+    and adds LLM boost only when expert pattern fires AND LLM agrees.
+    """
+    lgbm_rank = _rankify(df[lgbm_signal_col])
+    llm_rank = _rankify(df[llm_signal_col])
+    high_onset = df[onset_col] >= 3
+    llm_strong = llm_rank >= 0.70
+    boost_mask = high_onset & llm_strong
+    return lgbm_rank + boost_mask.astype(float) * boost
+
+
 # Convenience dispatcher
 STRATEGIES = {
     "A_confidence": confidence_router,
@@ -147,4 +228,8 @@ STRATEGIES = {
     "C_soft_ensemble": soft_ensemble,
     "D_avoid_expert_onset": avoid_expert_when_onset,
     "E_lgbm_floor_llm_boost": lgbm_floor_plus_llm_topk,
+    "F_disaster_aware": regime_disaster_router,
+    "G_disagreement_boost": lgbm_llm_disagreement_router,
+    "H_market_regime_ensemble": market_regime_ensemble,
+    "I_onset_aware_boost": onset_signal_aware_router,
 }

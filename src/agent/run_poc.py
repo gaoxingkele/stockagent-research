@@ -36,7 +36,7 @@ from src.agent.prompt_builder import (
 
 logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
-SAMPLES = ROOT / "data/processed/llm_poc_samples_v1.parquet"
+DEFAULT_SAMPLES = ROOT / "data/processed/llm_poc_samples_v1.parquet"
 
 
 def llm_predict_one(anchor: pd.Series, system_prompt: str, model: str,
@@ -102,6 +102,8 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--workers", type=int, default=5,
                     help="ThreadPoolExecutor concurrent workers")
+    ap.add_argument("--samples-path", type=str, default=str(DEFAULT_SAMPLES),
+                    help="Path to anchors parquet (defaults to PoC samples)")
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -109,24 +111,31 @@ def main():
     out_dir = ROOT / f"results/poc_{args.tag}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Loading samples from {SAMPLES}")
-    samples = pd.read_parquet(SAMPLES)
+    samples_path = Path(args.samples_path)
+    logger.info(f"Loading samples from {samples_path}")
+    samples = pd.read_parquet(samples_path)
 
-    # Stratified subsample to n
+    # If samples have a stratum column, sub-sample by stratum.
+    # Otherwise (walk-forward random samples), just head/random N.
     if args.n < len(samples):
-        per_stratum = max(1, args.n // 3)
-        rng = np.random.default_rng(args.seed)
-        sub_parts = []
-        for s, target_n in [("high", args.n * 25 // 100),
-                             ("edge", args.n * 25 // 100),
-                             ("low", args.n - 2 * (args.n * 25 // 100))]:
-            pool = samples[samples["stratum"] == s]
-            take = min(target_n, len(pool))
-            sub_parts.append(pool.sample(take, random_state=rng.integers(0, 10**6)))
-        sub = pd.concat(sub_parts, ignore_index=True)
+        if "stratum" in samples.columns:
+            rng = np.random.default_rng(args.seed)
+            sub_parts = []
+            for s, target_n in [("high", args.n * 25 // 100),
+                                 ("edge", args.n * 25 // 100),
+                                 ("low", args.n - 2 * (args.n * 25 // 100))]:
+                pool = samples[samples["stratum"] == s]
+                take = min(target_n, len(pool))
+                sub_parts.append(pool.sample(take, random_state=rng.integers(0, 10**6)))
+            sub = pd.concat(sub_parts, ignore_index=True)
+        else:
+            sub = samples.sample(args.n, random_state=args.seed).reset_index(drop=True)
     else:
         sub = samples
-    logger.info(f"Working set: {len(sub)} anchors  (strata: {sub['stratum'].value_counts().to_dict()})")
+    if "stratum" in sub.columns:
+        logger.info(f"Working set: {len(sub)} anchors  (strata: {sub['stratum'].value_counts().to_dict()})")
+    else:
+        logger.info(f"Working set: {len(sub)} anchors")
 
     # Both conditions share the same short system prompt.
     # Expert knowledge for the "expert" condition is injected into the USER prompt
@@ -136,8 +145,13 @@ def main():
     expert_prefix_map = {"raw": "", "expert": expert_body}
 
     # Run each condition
-    all_results = sub[["ts_code", "trade_date", "stratum", "_fwd_r5",
-                        "_exp_is_bullish_onset", "_exp_onset_score"]].copy()
+    base_cols = ["ts_code", "trade_date", "_fwd_r5",
+                  "_exp_is_bullish_onset", "_exp_onset_score"]
+    if "stratum" in sub.columns:
+        base_cols.insert(2, "stratum")
+    if "_split_id" in sub.columns:
+        base_cols.append("_split_id")
+    all_results = sub[base_cols].copy()
     total_cost = 0.0
     t_start = time.time()
     for cond in args.conditions:
@@ -184,8 +198,10 @@ def main():
                "elapsed_minutes": elapsed_total / 60,
                "conditions": {}}
 
-    # Stratified raw return reference
-    metrics["stratum_mean_fwd_r5"] = sub.groupby("stratum")["_fwd_r5"].mean().to_dict()
+    if "stratum" in sub.columns:
+        metrics["stratum_mean_fwd_r5"] = sub.groupby("stratum")["_fwd_r5"].mean().to_dict()
+    else:
+        metrics["stratum_mean_fwd_r5"] = {"all": float(sub["_fwd_r5"].mean())}
 
     for cond in args.conditions:
         for sig_name, sig_col in [
@@ -222,6 +238,7 @@ def main():
              "\n## Stratum mean fwd_r5\n"]
     for s, v in metrics["stratum_mean_fwd_r5"].items():
         lines.append(f"  - {s}: {v*100:+.2f}%")
+    lines.append(f"\n## Onset rate (expert is_bullish_onset): {sub['_exp_is_bullish_onset'].mean():.2%}\n")
     lines.append("\n## Metrics by condition × signal\n")
     lines.append("| Condition | Signal | n | RankIC | Top10% ret | Top10% winrate | Top20% ret |")
     lines.append("|---|---|---|---|---|---|---|")
