@@ -1,0 +1,29 @@
+# Pinned versions for Intel Arc XPU training environment
+# Setup:
+#   conda create -p .venv-xpu python=3.11
+#   conda activate .venv-xpu/
+#   pip install -r requirements-xpu.txt
+#
+# Activation for use:
+#   .venv-xpu/Scripts/python.exe -m src.train_tcn_wf ...
+
+# PyTorch with Intel XPU support (must match torch 2.9.x line)
+torch==2.9.1+xpu  --extra-index-url https://download.pytorch.org/whl/xpu
+
+# Numerical / data
+numpy
+pandas
+pyarrow
+scipy
+scikit-learn
+
+# Tree models (Phase 1 LGBM baseline)
+lightgbm
+
+# LLM agent client
+openai
+python-dotenv
+
+# Optional: dev / experimentation
+# matplotlib
+# jupyterlab

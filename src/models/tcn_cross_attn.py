@@ -39,6 +39,15 @@ from torch.utils.data import DataLoader, TensorDataset
 logger = logging.getLogger(__name__)
 
 
+def _auto_device() -> torch.device:
+    """Auto-select best available accelerator: cuda > xpu (Intel Arc) > cpu."""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        return torch.device("xpu")
+    return torch.device("cpu")
+
+
 @dataclass
 class TCNCrossAttnConfig:
     num_features: int = 165          # F: factor channels
@@ -237,7 +246,7 @@ def train_model(
     cfg = cfg or TCNCrossAttnConfig(num_features=X_train.shape[2])
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = _auto_device()
 
     mean, std = _normalize_train_stats(X_train)
     X_train = (X_train - mean) / std
@@ -313,6 +322,9 @@ def predict(
     """Predict 3-class probabilities for given anchor sequences."""
     device = next(model.parameters()).device
     Xn = ((X - mean) / std).clip(-5.0, 5.0).astype(np.float32)
+    if device.type == "xpu":
+        # XPU prefers smaller batch sizes for stability with current driver
+        batch_size = min(batch_size, 512)
     loader = DataLoader(
         TensorDataset(torch.from_numpy(Xn), torch.zeros(len(Xn), dtype=torch.long)),
         batch_size=batch_size, shuffle=False, num_workers=0,

@@ -201,7 +201,8 @@ def pretrain(
     bt_cfg = bt_cfg or BarlowTwinsConfig()
     torch.manual_seed(bt_cfg.seed)
     np.random.seed(bt_cfg.seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    from src.models.tcn_cross_attn import _auto_device
+    device = _auto_device()
 
     # Per-feature normalize the unlabeled data
     mean = X_unlabeled.mean(axis=(0, 1))
