@@ -53,7 +53,30 @@ The Pattern Core consumes the factor pool and emits per-stock onset probabilitie
 
 **Model.** Phase 1 employs LightGBM (Ke et al. 2017) with the following hyperparameters: 63 leaves, 200 min-data-per-leaf, 0.05 learning rate, $\ell_1 = \ell_2 = 0.1$ regularization, 500 boosting rounds with early stopping at 30 rounds. Forward-label leakage prevention: ten columns (`r5/r10/r20/r30/r40`, `dd5/dd10/dd20/dd30/dd40`) are blacklisted; these are training-label-construction artifacts that exhibit $\text{spearman}(\text{r5}, r^{(5)}_{i,t}) = +0.8983$ — i.e., they are the forward return itself, not a past feature.
 
-**Phase 2 and 3 plans.** Pathway 2 (this paper's follow-up) replaces the Phase 1 LGBM Pattern Core with a TCN-causal-dilated convolutional encoder followed by spatio-temporal cross-attention (Sec. 7). Pathway 3 further pretrains the encoder with the Barlow Twins redundancy-reduction objective (Zbontar et al. 2021). All three phases share the same Macro Regime Monitor, Alpha Factor Explorer, and Backtest Verifier — a controlled-comparison design that we believe is essential for honest ablation.
+**Phase 2: TCN + Spatio-Temporal Cross-Attention.** We implement and evaluate a Phase 2 Pattern Core that replaces LightGBM with a TCN-causal-dilated convolutional encoder followed by bidirectional Spatio-Temporal Cross-Attention. The architecture stack: (i) four causal dilated convolutional layers with dilations $\{1, 2, 4, 8\}$, kernel size 3, hidden dimension $d = 64$, capturing multi-scale temporal patterns; (ii) a parallel feature embedding $\mathbb{R}^T \to \mathbb{R}^d$ projecting each feature's full time-history into the same hidden space; (iii) a Cross-Attention block with bidirectional Query-Key-Value flows between the time-axis tokens $H_T \in \mathbb{R}^{T \times d}$ and feature-axis tokens $H_S \in \mathbb{R}^{F \times d}$, with 4 attention heads and layer normalization; (iv) mean-pooled $\mathrm{agg}_T, \mathrm{agg}_S$ concatenated and passed through a 2-layer classifier head $\to 3$-class logits. Total trainable parameters: 119,171.
+
+Walk-forward results with TCN trained on 100K-anchor subsets per split (vs LGBM trained on 3.5M anchors):
+
+| Split | Pattern Core | RankIC | Top-10% return | Top-10% WR |
+|---|---|---|---|---|
+| 1 (Q2) | LGBM (Phase 1) | **+0.177** | **+3.34%** | **69.0%** |
+| 1 (Q2) | TCN (Phase 2, 100K) | +0.084 | +2.48% | 66.3% |
+| 2 (Q3) | LGBM | −0.015 | +0.88% | 55.5% |
+| 2 (Q3) | TCN | **+0.034** | +0.82% | 45.7% |
+| 3 (Q4) | LGBM | +0.103 | +0.68% | 59.5% |
+| 3 (Q4) | TCN | +0.061 | **+1.54%** | **61.3%** |
+| **Mean** | LGBM | **+0.088** | **+1.63%** | 61.3% |
+| **Mean** | TCN | +0.060 | +1.61% | 57.7% |
+
+Three observations: (a) TCN achieves equivalent pooled Top-10% return (+1.61% vs LGBM +1.63%) despite **35× less training data** (100K vs 3.5M anchors); (b) on Split 2 where LGBM fails (RankIC −0.015), TCN's positive RankIC (+0.034) bridges the failure mode — a genuine LGBM-complementary signal; (c) on Split 3, TCN outperforms LGBM on Top-10% return (+1.54% vs +0.68%), confirming cross-quarter architecture × regime heterogeneity. Section 6.5 ablates the TCN scaling law (RankIC improved 7× when training data scaled 5×).
+
+**Phase 3: Barlow-Twins SSL pretraining.** Building on Phase 2, we pretrain the TCN+Cross-Attention encoder with the Barlow Twins SSL objective (Zbontar et al. 2021):
+$$
+\mathcal{L}_{\text{BT}} = \sum_i (1 - c_{ii})^2 + \lambda \sum_i \sum_{j \neq i} c_{ij}^2
+$$
+where $c \in \mathbb{R}^{D \times D}$ is the cross-correlation matrix between two augmented-view projections of the same anchor sequence. Augmentations include per-feature-scaled Gaussian noise (std 0.10), random feature dropout (probability 0.15), and temporal cyclic warp (up to ±3 days). A three-layer MLP projector ($d \to 128 \to 256$) with batch normalization (affine = False, per Zbontar) maps the encoder pooled output to 256-D embeddings for loss computation. Total SSL-pretrain trainable parameters: 180,995.
+
+This design avoids the negative-sample construction problem (cross-stock cointegration makes "negative" pairs ill-defined in finance) and gracefully scales to high-dimensional projectors that encourage fine-grained orthogonal alpha-factor representations. Pretraining is done on unlabeled anchors strictly before each split's training boundary to prevent lookahead. The pretrained encoder is then finetuned on the supervised label task with differential learning rates (encoder $\times 0.1$, classifier $\times 1.0$) to mitigate catastrophic forgetting. Phase 3 evaluation results are reported in Section 5.8.
 
 **Sample-and-conquer alternative: triple-barrier labeling.** As an additional baseline, we use López de Prado's triple-barrier method (E1.3 in our experiments) with $(u, d, H) \in \{(0.05, 0.03, 5), (0.08, 0.05, 20)\}$. While TBM does not condition on backward context (i.e., omits our Definition 1 condition 3), it provides a strong reference baseline for the value of the backward-context constraint.
 

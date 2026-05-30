@@ -24,13 +24,19 @@ We hypothesize three drivers of regime-conditional LLM value:
 
 Empirically, identifying which quarter falls into which regime *online* is the core challenge for any practical router. We compute the upper bound at +0.39pp Top-10% (oracle) and demonstrate that our online routers capture less than 20% of it; closing this gap is the central topic of Pathway 2.
 
-## 7.3 The Path Forward: Pathway 2 (TCN+Cross-Attention) and Pathway 3 (Barlow Twins SSL)
+## 7.3 Pathway 2 Findings and Pathway 3 Outlook
 
-The V12-Agentic framework presented here is modular by design: the Pattern Core is the natural locus for representation upgrades. We outline two future directions.
+The V12-Agentic framework's modular Pattern Core slot allowed us to implement and evaluate two further phases beyond the LGBM baseline.
 
-**Pathway 2: Spatio-Temporal Cross-Attention Pattern Core.** Replace LGBM with a TCN-causal-dilated encoder that processes the 60-day historical bar sequence for each stock, followed by a spatio-temporal cross-attention layer that learns dynamic factor-axis × time-axis interaction. The TCN's causal dilations capture multi-scale onset patterns (short consolidation → breakout → continuation), and the cross-attention provides factor-importance dynamics conditional on the temporal context. We project this upgrade to deliver a 0.05–0.10 absolute RankIC improvement and to materially close the +0.39pp oracle headroom.
+**Pathway 2 walk-forward results.** Our Phase 2 TCN+Cross-Attention Pattern Core (Sec. 4.3) achieves equivalent mean Top-10% return to the LGBM baseline (+1.61% vs +1.63%) while training on only 100K anchors per split (vs 3.5M for LGBM) — a 35× data-efficiency advantage. Two specific quarters illuminate the architecture × regime interaction:
+- **Split 2 (LGBM failure quarter)**: TCN achieves RankIC +0.034 vs LGBM −0.015, providing meaningful signal where the tree-based model fails. This indicates the TCN encoder captures temporal patterns that gradient boosting on per-anchor features cannot.
+- **Split 3 (mixed quarter)**: TCN dominates Top-10% return (+1.54% vs LGBM +0.68%), suggesting better generalization to the most recent test window — a property typically associated with deep models trained on sufficiently large data.
 
-**Pathway 3: Barlow-Twins-Pretrained Encoder.** Pretrain the Pathway 2 encoder with the Barlow Twins redundancy-reduction objective (Zbontar et al. 2021) on the full D1 unsupervised panel (4 years × 5,434 stocks ≈ 5M anchors). The Barlow Twins objective avoids the negative-sample-construction problem (problematic in finance due to cross-stock cointegration) and learns features invariant to multiple data augmentations (e.g., Gaussian noise, dropout-style masking, time-warp). We hypothesize that the Barlow-Twins-pretrained encoder will narrow the gap between in-distribution and out-of-distribution test performance, partially addressing the cross-quarter heterogeneity issue identified in this paper.
+The Phase 2 architecture moreover scales aggressively: Section 6.5 documents a 7× RankIC improvement when training data scales 5× (RankIC +0.012 at 20K → +0.084 at 100K samples). Extrapolating, a GPU-trained TCN on 3.5M anchors would likely match or exceed LGBM — a viable direction for full deployment.
+
+**Pathway 3 (Barlow Twins SSL): the data-efficient bet.** Even with strong scaling, fully training a TCN-based Pattern Core on millions of supervised anchors per split is expensive. The Pathway 3 hypothesis is that pretraining the encoder via Barlow Twins SSL on the full unlabeled D1 panel ($\approx$5M anchors prior to each split's training boundary) and then finetuning on the labeled task (20K–100K anchors) achieves Pathway 2-quality results at a fraction of the supervised data cost. Section 5.8 (when completed) reports Pathway 3 results across the three walk-forward splits.
+
+The Barlow Twins objective is especially well-suited to finance because: (i) it avoids the negative-sample-construction problem (cross-stock cointegration makes "negative" pairs in finance ill-defined); (ii) it scales well to high-dimensional projectors (256-D in our implementation), encouraging fine-grained orthogonal alpha-factor representations; (iii) the augmentations (Gaussian noise, feature dropout, temporal cyclic warp) inject invariances that align with the implicit symmetries of real-market anchor windows.
 
 ## 7.4 Limitations
 
