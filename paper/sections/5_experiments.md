@@ -74,11 +74,11 @@ Table 1 reports per-split and pooled metrics for all 12 methods. We highlight th
 
 This per-split heterogeneity motivates the regime-aware routing analysis in §5.7.
 
-## 5.5 Stratified vs Random Sampling — The Artifact
+## 5.5 The Stratified-vs-Random "Reversal" Is Within Noise
 
-A key finding of this paper is the **sampling-regime sensitivity** of LLM-hybrid evaluation. We compare two regimes on overlapping evaluation methodology:
+A recurring claim in LLM-finance work is that hybrid LLM signals beat a strong tabular baseline. On our own stratified proof-of-concept (PoC) we initially observed exactly such a result, which then disappeared on the walk-forward random sample. The two point estimates are reproduced in Table 2.
 
-**Table 2: Stratified PoC vs Walk-Forward Random**
+**Table 2: Stratified PoC vs Walk-Forward Random (point estimates)**
 
 | Method | Stratified PoC (n=1000, 25% onset) | Walk-Forward Random (n=6000 pooled, 8% onset) | Δ |
 |---|---|---|---|
@@ -88,14 +88,15 @@ A key finding of this paper is the **sampling-regime sensitivity** of LLM-hybrid
 | E_lgbm_floor_boost_0.30 Top-10% | **+1.93%** | +1.32% | **−0.61pp** |
 | BL_expert_rule RankIC | +0.108 | −0.086 | **−0.194** |
 
-Two effects compound. **First**, the LGBM Pattern Core actually performs *slightly better* on random sampling (+1.56% vs +1.25%), consistent with our hypothesis that LGBM's tree-induction bias generalizes well across class-imbalance shifts. **Second**, all LLM-based signals degrade substantially: raw drops −0.59pp, expert drops −0.90pp, and the best hybrid drops −0.61pp.
+Taken at face value, the best hybrid "beats LGBM by +54%" on the stratified PoC (+1.93% vs +1.25%) and "trails LGBM by −15%" on the random sample. It is tempting to attribute this to a base-rate mechanism. We instead ran three controlled experiments — all on the *already-scored* anchors, so no new LLM cost — and find that the effect is **not a base-rate artifact and is not statistically distinguishable from zero**.
 
-The net effect is that the headline "hybrid beats LGBM by +54%" finding from a stratified PoC reverses to "hybrid trails LGBM by −15%" on random sampling. We attribute this to two compounding factors:
+**(i) No composition of the random pool reproduces the reversal.** Holding the 6,000 walk-forward anchors and their LLM scores fixed, we sweep the evaluation set's marginal onset rate (the `is_bullish_onset` fraction) and, separately, the expert-score stratification axis used by the PoC (the `onset_score ≥ 3` fraction) across 5–50%, recomputing all signals at each composition. As shown in Figure (`c3_dose_response`), the hybrid's Top-10% return stays **below** LGBM at *every* composition under both sweeps (Δ between −0.23pp and −0.81pp, no zero-crossing). If base-rate compression drove the PoC result, raising the onset rate of the random pool to 25% should reproduce hybrid > LGBM; it does not. **Base rate is not the cause.**
 
-1. **LLM exposure bias toward positive cases.** When stratified positively, LLM is shown roughly equal numbers of strong-onset, weak-onset, and non-onset anchors; the LLM's resulting calibration may be unjustly favorable to its top picks. Random sampling removes this exposure.
-2. **Top-K threshold compression.** At onset rate 25% (stratified), the top decile contains primarily true-positive onsets; at onset rate 8% (random), the top decile is dominated by ambiguous "near-onset" anchors that LLM rationale tends to miscategorize.
+**(ii) A stronger base ranker does not erase the edge.** Restricting to the 583 PoC anchors that fall inside the split-2/3 test windows (where the walk-forward LGBM is legitimately out-of-sample), we hold the anchors and LLM scores fixed and swap only the LGBM base ranker: the PoC's original single-window model (RankIC +0.028) vs the stronger walk-forward per-split model (RankIC +0.056). The hybrid-minus-LGBM gap is essentially unchanged (+0.70pp → +0.81pp). **Baseline strength is not the cause either.**
 
-We urge the field to report results under matched real-deployment distributions, and to disclose the stratification protocol used in any "LLM-improves-onset-detection" claim.
+**(iii) The PoC edge is within date-clustered noise.** Anchors sharing a `trade_date` are cross-sectionally correlated; an anchor-independent bootstrap (as is common in the field) understates uncertainty. Re-evaluating the full 1,000-anchor PoC with a **date-clustered** bootstrap (1,000 resamples over dates), the headline gap is Δ(Hybrid − LGBM) Top-10% = **+0.72pp, 95% CI [−0.56pp, +2.05pp]** — comfortably spanning zero. The "+54%" is a ratio of two small-sample, date-correlated means, neither of which is significantly above the other.
+
+**Reframed finding.** The apparent stratified-vs-random reversal is the difference between two point estimates that are *each* statistically indistinguishable from zero for the hybrid-vs-LGBM contrast. This is consistent with Observation 2 of §5.4 (hybrid achieves near-parity, never significant superiority). The methodological warning is therefore sharper than "stratification inflates effects via base rate": **at the sample sizes typical of LLM-finance studies, hybrid-over-baseline effects of this magnitude are within date-clustered noise, and benchmarks that report such effects as ratios, without cluster-robust confidence intervals, will systematically manufacture spurious "LLM helps" claims.** We urge the field to report cluster-robust intervals on the *difference* of interest, matched-deployment distributions, and absolute (not ratio) effect sizes.
 
 ## 5.6 Regime-Aware Routing and the Oracle Upper Bound
 
