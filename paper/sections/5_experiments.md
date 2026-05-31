@@ -131,3 +131,21 @@ Table 3 (Appendix) reports the full per-split breakdown. Patterns by quarter:
 | 3 (2025-Q4) | +0.68% | +0.27% | +0.04% | **E_0.30 +1.48%** | **E_0.30 (hybrid)** |
 
 Three different methods are optimal on the three splits — a clean illustration of regime heterogeneity. The challenge for future work is to detect *online* which method to deploy *next quarter*. We hypothesize that the recent rolling RankIC of each method, computed on a 30-day window of prior predictions and realized returns, can serve as a routing signal. We leave the implementation and evaluation of this richer regime-conditioning to Pathway 2.
+
+## 5.9 External Validation (E3): Temporal Leakage on a Public Benchmark
+
+The §5.5 noise finding was established on our proprietary 2025 walk-forward data. To test whether LLM-finance benchmarks over-report skill more generally, we turn to **ACL18** (Xu and Cohen, 2018), the canonical stock-movement dataset that FinBen and PIXIU package as `flare-sm-acl` and use to score financial LLMs. ACL18 asks for the next-day Rise/Fall direction of 88 NASDAQ/NYSE stocks (2014–2016) from recent prices and tweets; the test split has 3,720 anchors over 64 trading days, with a near-balanced label (51.3% Rise).
+
+We evaluate three rankers on the test split: a LightGBM **tabular baseline** trained on the in-context momentum features; the **LLM** (gemini-3.5-flash) given the exact benchmark prompt (price history + tweets); and the **same LLM with no context** — only the ticker and target date ("Will \$csco go up or down on 2015-10-01?"). Accuracies (parse-failures excluded; date-clustered 95% CIs):
+
+**Table 4: ACL18 directional accuracy**
+
+| Ranker | Accuracy | 95% CI (date-clustered) |
+|---|---|---|
+| Tabular price baseline | 49.1% | — |
+| LLM, full benchmark context | 67.2% | [63.3%, 71.2%] |
+| **LLM, ticker + date only (no context)** | **73.3%** | [69.2%, 77.0%] |
+
+Two observations make the leakage unmistakable. **First**, 67% directional accuracy is implausible for genuine next-day prediction — published ACL18 results cluster at 52–58%, and the information-theoretic ceiling for honest next-day forecasting is near 53%. **Second, and decisively, stripping the entire input — all prices and tweets — *raises* accuracy to 73.3%** (context contributes **−6.05pp**). A model that predicts better with no data than with the benchmark's data is not analysing; it is recalling. This is corroborated by a mega-cap effect: famous tickers (AAPL/AMZN/MSFT/CSCO/…) are predicted at 74.0% vs 66.5% for the rest — exactly the gradient expected if the signal is memorized historical price movement rather than analysis of the provided context. The prompt itself does not leak (the price context always ends 1–4 trading days before the target date); the leakage is **temporal**, through the LLM's pre-training corpus, which post-dates the 2014–2016 benchmark window.
+
+The implication is a second, independent methodological warning (Figure `e3_leakage`): **evaluating a modern LLM on a stock-movement benchmark that pre-dates its training cutoff measures memorization, not forecasting, and any "LLM beats baseline" claim on such data is confounded by temporal leakage.** This is precisely why the contributions of this paper (C1–C4) are measured on a **2025** walk-forward sample that post-dates common training cutoffs: leakage-resistance is a prerequisite for a meaningful LLM-finance benchmark, not an optional nicety.
