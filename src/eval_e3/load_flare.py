@@ -75,15 +75,26 @@ def _extract_ticker(query: str) -> str | None:
     return m.group(1).lower() if m else None
 
 
+# some FLARE configs name the dev split "validation" instead of "valid"
+REMOTE_SPLITS = {"train": ["train"], "valid": ["valid", "validation"], "test": ["test"]}
+
+
 def download(name: str):
     raw = BASE / DATASETS[name]
     raw.mkdir(parents=True, exist_ok=True)
     for s in SPLITS:
         dst = raw / f"{s}.parquet"
-        if not dst.exists():
-            url = HF.format(name=DATASETS[name], split=s)
-            pd.read_parquet(url).to_parquet(dst)
-            print(f"  downloaded {name}/{s}")
+        if dst.exists():
+            continue
+        for remote in REMOTE_SPLITS[s]:
+            try:
+                pd.read_parquet(HF.format(name=DATASETS[name], split=remote)).to_parquet(dst)
+                print(f"  downloaded {name}/{s} (remote='{remote}')")
+                break
+            except Exception:
+                continue
+        else:
+            raise RuntimeError(f"could not download {name}/{s} (tried {REMOTE_SPLITS[s]})")
     return raw
 
 

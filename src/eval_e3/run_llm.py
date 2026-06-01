@@ -64,10 +64,10 @@ def build_user(row, no_context: bool) -> str:
             f"at {row['date']}? Please indicate either Rise or Fall.")
 
 
-def score_one(row, model, no_context=False):
+def score_one(row, model, no_context=False, max_tokens=256):
     try:
         r = call_llm(system=SYSTEM, user=build_user(row, no_context), model=model,
-                     temperature=0.0, max_tokens=256)
+                     temperature=0.0, max_tokens=max_tokens)
         direction, conf = parse(r.content)
         return {"id": row["id"], "llm_direction": direction, "llm_conf": conf,
                 "llm_p": to_p(direction, conf), "cost_usd": r.cost_usd}
@@ -85,6 +85,8 @@ def main():
     ap.add_argument("--sample", type=int, default=None, help="random subsample size")
     ap.add_argument("--no-context", action="store_true", help="ticker+date only ablation")
     ap.add_argument("--tag", default=None, help="output suffix (separate file, no resume)")
+    ap.add_argument("--max-tokens", type=int, default=256,
+                    help="raise to avoid truncating models that emit hidden reasoning")
     args = ap.parse_args()
 
     te = pd.read_parquet(BASE / args.dataset / "parsed_test.parquet")
@@ -110,7 +112,7 @@ def main():
     spend = 0.0
     n_done = 0
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futs = {ex.submit(score_one, row, args.model, args.no_context): row["id"]
+        futs = {ex.submit(score_one, row, args.model, args.no_context, args.max_tokens): row["id"]
                 for _, row in todo.iterrows()}
         for fut in as_completed(futs):
             res = fut.result()
