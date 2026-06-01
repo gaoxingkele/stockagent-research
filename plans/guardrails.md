@@ -1,0 +1,43 @@
+# Guardrails (Signs) — stockagent-research onset (启动子) algorithm work
+
+Learned constraints read at the start of every Ralph iteration. Progress persists; failures evaporate. Append-only.
+
+### SIGN-001: The gate is RUNS-CORRECTLY, not BEATS-BASELINE
+**Trigger:** deciding whether a task passes.
+**Instruction:** A task passes when its component runs and produces structurally-valid output AND its hermetic test is green. NEVER gate on "RankIC > baseline" / "beats LGBM" / "accuracy up". The signal in this domain is weak (RankIC ~0.02–0.07); a performance gate would never converge.
+**Reason:** The paper's contribution is formalization + reference method + benchmark, not alpha.
+
+### SIGN-002: Tests must be hermetic
+**Trigger:** writing a task's test.
+**Instruction:** Use small synthetic data generated in-test (numpy/torch). No network, no large parquet, no XPU/GPU requirement, runs in <5s. The test must FAIL before the deliverable exists and PASS after.
+**Reason:** The verify gate (`pytest tests/algo`) must be fast, deterministic, and meaningful.
+
+### SIGN-003: No look-ahead / point-in-time safety
+**Trigger:** any feature, label, or evaluation builder.
+**Instruction:** Never use data at or after the target/prediction date. Assert point-in-time safety in tests. This is the whole lesson of contribution C5 (temporal leakage).
+**Reason:** Leakage silently inflates everything and invalidates the result.
+
+### SIGN-004: Cluster-robust evaluation only
+**Trigger:** reporting any metric difference or CI.
+**Instruction:** Use date-clustered bootstrap (resample whole trading days), never anchor-independent. Report CIs on absolute differences, not ratios. (Contribution C3.)
+**Reason:** Same-day anchors are correlated; naive bootstrap manufactures false significance.
+
+### SIGN-005: Use the .venv-xpu environment
+**Trigger:** running anything.
+**Instruction:** Always run via `.venv-xpu\Scripts\python.exe` (Python 3.11 + torch-xpu). Do NOT use the system Python 3.14 (no torch/IPEX wheels). Models auto-select device cuda>xpu>cpu; tests must run on CPU.
+**Reason:** Only .venv-xpu has a working torch.
+
+### SIGN-006: Small, focused, committed increments
+**Trigger:** finishing a task.
+**Instruction:** One task = one deliverable module + its test. Run the gate, then `git add` + commit with a message referencing the task id (e.g. `feat(onset): T-003 neural intensity head`). Branch: onset/algo-impl.
+**Reason:** Progress must persist across fresh iterations.
+
+### SIGN-007: Reuse existing code, do not duplicate
+**Trigger:** implementing a deliverable.
+**Instruction:** Reuse src/models/tcn_cross_attn.py (encoder), src/onset/expert_pattern.py (rules), src/evaluation/c3_dose_response.py + cluster_bootstrap (bootstrap), src/eval_e3 (leakage plumbing). Import, don't reimplement.
+**Reason:** The repo already has the building blocks.
+
+### SIGN-008: IRM is not a free lunch
+**Trigger:** working on T-004 (regime-invariant).
+**Instruction:** Keep IRM assertions STRUCTURAL (penalty finite, decreases over steps). Do NOT assert IRM beats ERM — it only helps under diverse spurious correlations and can underperform ERM otherwise.
+**Reason:** Over-claiming IRM superiority would be false and would make the test flaky.
