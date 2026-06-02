@@ -23,8 +23,8 @@
         "test uses synthetic data only and asserts shapes + that risk decreases when scores align with true positives"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "DONE: src/onset/pu_labels.py (build_pu_sets/class_prior/nnpu_risk, Kiryo 2017 nnPU, sigmoid surrogate); 5 hermetic tests green."
     },
     {
       "id": "T-002",
@@ -39,8 +39,8 @@
         "synthetic test: when one LF is near-perfect and others noisy, the model upweights the good LF"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "Reuse src/onset/expert_pattern.py signal names."
+      "passes": true,
+      "notes": "DONE: src/onset/weak_supervision.py (majority_vote + EM-like label_model, accuracy-weighted log-odds, soft labels in [0,1], abstain->0.5). 4 hermetic tests green."
     },
     {
       "id": "T-003",
@@ -55,8 +55,8 @@
         "synthetic test: loss is finite and decreases over a few optimizer steps on a trivial fit"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": "Encoder can be stubbed/small for the test; reuse src/models/tcn_cross_attn.py interface."
+      "passes": true,
+      "notes": "DONE: src/models/onset_intensity.py (OnsetIntensityHead softplus lambda>=0; discrete_time_nll Bernoulli-hazard p=1-exp(-lambda)). Decoupled from encoder (consumes [B,T,D]). 3 CPU tests green."
     },
     {
       "id": "T-004",
@@ -71,8 +71,8 @@
         "lambda (penalty weight) and environment list are configurable"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Keep assertions structural; do NOT assert it beats ERM (known to be regime-dependent)."
+      "passes": true,
+      "notes": "DONE: src/training/irm_onset.py — irm_penalty(logits,targets,loss_fn) (IRMv1 dummy-scale grad penalty) + train_step(model,environments,optimizer,irm_lambda). Realized signature is (logits,targets,loss_fn). Structural tests only (penalty finite, IRM objective decreases) per SIGN-008. 2 CPU tests green."
     },
     {
       "id": "T-005",
@@ -86,8 +86,8 @@
         "synthetic test: clustered CI is wider than the anchor-independent CI; PIT guard raises on a leaked feature"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": "Reuse bootstrap logic from src/evaluation/c3_dose_response.py / cluster_bootstrap."
+      "passes": true,
+      "notes": "DONE: src/evaluation/onset_eval.py — clustered_bootstrap (resample whole dates) + naive_bootstrap (for contrast) + point_in_time_guard (raises on feature date >= target). 3 tests green (clustered CI wider; PIT guard raises)."
     },
     {
       "id": "T-006",
@@ -101,8 +101,8 @@
         "synthetic test: fabricated pre(high)/post(chance) data triggers the flag; matched-high data does not"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": "Reuse src/eval_e3 plumbing; this is the experiment recommended to upgrade C5 from suggestive to causal."
+      "passes": true,
+      "notes": "DONE: src/eval_e3/cutoff_probe.py — split_by_cutoff (pre/post training cutoff) + leakage_flag (pre-high & post-chance => leakage). 4 tests green. Upgrades C5 toward causal."
     },
     {
       "id": "T-007",
@@ -116,8 +116,8 @@
         "synthetic test: gradient flows (requires_grad), and perfectly-ranked scores give near-optimal loss"
       ],
       "priority": 7,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "DONE: src/training/objectives.py (soft_rank via pairwise sigmoid; soft_rank_ic_loss = -soft-Spearman IC; topk_utility_loss = -softmax-weighted top-k return). Differentiable. 3 CPU tests green."
     },
     {
       "id": "T-008",
@@ -131,8 +131,8 @@
         "smoke test runs on CPU in <30s and asserts the stats file is written with expected keys"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": "Depends on T-001..T-005, T-007. This is the reference method for the paper, not a production model."
+      "passes": true,
+      "notes": "DONE: src/train_onset.py — wires encoder + OnsetIntensityHead/NLL (T-003) + IRM penalty (T-004) + PU prior (T-001) + weak-supervision soft labels (T-002) + soft-rank-IC objective (T-007), evaluated by clustered_bootstrap (T-005). 1 tiny epoch on synthetic walk-forward data, writes results/onset/<run>/stats.json. Smoke test <4s CPU. ALL 8 tasks green (26 tests)."
     }
   ]
 }
