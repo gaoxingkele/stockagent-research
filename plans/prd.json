@@ -23,8 +23,8 @@
         "test uses synthetic data only and asserts shapes + that risk decreases when scores align with true positives"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "DONE: src/onset/pu_labels.py (build_pu_sets/class_prior/nnpu_risk, Kiryo 2017 nnPU, sigmoid surrogate); 5 hermetic tests green."
     },
     {
       "id": "T-002",
