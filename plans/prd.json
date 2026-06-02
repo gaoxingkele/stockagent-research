@@ -39,8 +39,8 @@
         "synthetic test: when one LF is near-perfect and others noisy, the model upweights the good LF"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "Reuse src/onset/expert_pattern.py signal names."
+      "passes": true,
+      "notes": "DONE: src/onset/weak_supervision.py (majority_vote + EM-like label_model, accuracy-weighted log-odds, soft labels in [0,1], abstain->0.5). 4 hermetic tests green."
     },
     {
       "id": "T-003",
