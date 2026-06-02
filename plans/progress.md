@@ -31,3 +31,7 @@ T-008 (integration) depends on T-001..T-005 + T-007 → do LAST.
 - **T-005 DONE**: `src/evaluation/onset_eval.py` — `clustered_bootstrap` + `naive_bootstrap` + `point_in_time_guard`. Unifies C3 (date-clustered CI) + C5 (leakage guard). 3 tests green.
 - **T-006 DONE**: `src/eval_e3/cutoff_probe.py` — `split_by_cutoff` + `leakage_flag` (pre-high & post-chance => leakage). Upgrades C5 toward causal. 4 tests green.
   - **Next:** T-008 integration (depends on T-001..T-005, T-007) — LAST task.
+- **T-008 DONE**: `src/train_onset.py` — end-to-end reference method wiring T-001/T-002 (labels) + T-003 (intensity head/NLL) + T-004 (IRM) + T-007 (ranking) + T-005 (cluster-robust eval). Tiny epoch on synthetic walk-forward data -> results/onset/<run>/stats.json. Smoke <4s.
+
+## COMPLETE
+All 8 backlog tasks pass; full gate `pytest tests/algo` = 26 passed. Branch onset/algo-impl. The reference onset (启动子) pipeline is implemented end-to-end with hermetic tests. Next (human/research): run train_onset on the REAL walk-forward data, run the cutoff-probe on real LLM scores to make C5 causal, and swap TinyEncoder -> TCN encoder.

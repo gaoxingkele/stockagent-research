@@ -131,8 +131,8 @@
         "smoke test runs on CPU in <30s and asserts the stats file is written with expected keys"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": "Depends on T-001..T-005, T-007. This is the reference method for the paper, not a production model."
+      "passes": true,
+      "notes": "DONE: src/train_onset.py — wires encoder + OnsetIntensityHead/NLL (T-003) + IRM penalty (T-004) + PU prior (T-001) + weak-supervision soft labels (T-002) + soft-rank-IC objective (T-007), evaluated by clustered_bootstrap (T-005). 1 tiny epoch on synthetic walk-forward data, writes results/onset/<run>/stats.json. Smoke test <4s CPU. ALL 8 tasks green (26 tests)."
     }
   ]
 }
