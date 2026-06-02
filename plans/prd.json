@@ -55,8 +55,8 @@
         "synthetic test: loss is finite and decreases over a few optimizer steps on a trivial fit"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": "Encoder can be stubbed/small for the test; reuse src/models/tcn_cross_attn.py interface."
+      "passes": true,
+      "notes": "DONE: src/models/onset_intensity.py (OnsetIntensityHead softplus lambda>=0; discrete_time_nll Bernoulli-hazard p=1-exp(-lambda)). Decoupled from encoder (consumes [B,T,D]). 3 CPU tests green."
     },
     {
       "id": "T-004",

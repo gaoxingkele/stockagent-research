@@ -22,3 +22,5 @@ T-008 (integration) depends on T-001..T-005 + T-007 → do LAST.
   - **Next:** T-002 (weak-supervision label model over expert rules) or T-003/T-007 (independent). T-008 integration last.
 - **T-002 DONE**: `src/onset/weak_supervision.py` — `majority_vote` + `label_model` (EM-like: estimate per-LF accuracy via agreement with current hard label, weight by log-odds, recombine to soft labels; abstain→0.5). Snorkel-style aggregation of expert rules as labeling functions. numpy. 4 hermetic tests green.
   - **Next:** T-003 (neural intensity head), T-007 (objectives) — both torch/CPU, independent. Then T-004, T-005, T-006; T-008 last.
+- **T-003 DONE**: `src/models/onset_intensity.py` — `OnsetIntensityHead` ([B,T,D]→softplus λ[B,T]) + `discrete_time_nll` (Bernoulli hazard p=1-exp(-λ)). Decoupled from encoder for hermetic testing. 3 CPU tests green (torch import ~35s one-time).
+  - **Next:** T-007, T-004, T-005, T-006; T-008 integration last.
