@@ -132,9 +132,11 @@ Table 3 (Appendix) reports the full per-split breakdown. Patterns by quarter:
 
 Three different methods are optimal on the three splits — a clean illustration of regime heterogeneity. The challenge for future work is to detect *online* which method to deploy *next quarter*. We hypothesize that the recent rolling RankIC of each method, computed on a 30-day window of prior predictions and realized returns, can serve as a routing signal. We leave the implementation and evaluation of this richer regime-conditioning to Pathway 2.
 
-## 5.9 External Validation (E3): Temporal Leakage on a Public Benchmark
+## 5.9 Confirmatory Check: Temporal Leakage on a Public Benchmark
 
-The §5.5 noise finding was established on our proprietary 2025 walk-forward data. To test whether LLM-finance benchmarks over-report skill more generally, we turn to the **FinBen / PIXIU stock-movement suite** — ACL18 (Xu and Cohen, 2018), BigData22 (Soun et al., 2022), and CIKM18 (Wu et al., 2018), packaged as `flare-sm-{acl,bigdata,cikm}` and used to score financial LLMs. Each asks for the next-day Rise/Fall direction of NASDAQ/NYSE stocks from recent prices and tweets.
+**This section claims no novelty.** That modern LLMs leak temporally on pre-cutoff financial data is by now well established — look-ahead and distraction bias in GPT sentiment trading [glasserman2023lookahead], lookahead bias in pretrained LMs [sarkar2024lookahead], the post-cutoff-sample requirement [lopezlira2023chatgpt], information-leakage "profit mirages" in LLM agents and the FinLake-Bench leakage-robust benchmark [profitmirage2025], and — concurrently with this work — identifier/calendar masking that separates memory from reasoning on the CSI300 [ktdfin2026]. We include a short confirmation only to justify, with our own measurements, why C1–C4 are evaluated on leakage-resistant 2025 data.
+
+We turn to the **FinBen / PIXIU stock-movement suite** — ACL18 (Xu and Cohen, 2018), BigData22 (Soun et al., 2022), and CIKM18 (Wu et al., 2018), packaged as `flare-sm-{acl,bigdata,cikm}` and used to score financial LLMs. Each asks for the next-day Rise/Fall direction of NASDAQ/NYSE stocks from recent prices and tweets.
 
 On each test split we evaluate three rankers: a LightGBM **tabular baseline** trained on the in-context momentum features; the **LLM** (gemini-3.5-flash) given the exact benchmark prompt (price history + tweets); and the **same LLM with no context** — only the ticker and target date ("Will \$csco go up or down on 2015-10-01?"). Accuracies are computed on parsed responses with date-clustered 95% CIs; "ctx Δ" is the no-context-minus-full-context gap, and the last two columns split by mega-cap vs other tickers.
 
