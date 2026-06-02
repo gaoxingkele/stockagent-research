@@ -86,8 +86,8 @@
         "synthetic test: clustered CI is wider than the anchor-independent CI; PIT guard raises on a leaked feature"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": "Reuse bootstrap logic from src/evaluation/c3_dose_response.py / cluster_bootstrap."
+      "passes": true,
+      "notes": "DONE: src/evaluation/onset_eval.py — clustered_bootstrap (resample whole dates) + naive_bootstrap (for contrast) + point_in_time_guard (raises on feature date >= target). 3 tests green (clustered CI wider; PIT guard raises)."
     },
     {
       "id": "T-006",
@@ -101,8 +101,8 @@
         "synthetic test: fabricated pre(high)/post(chance) data triggers the flag; matched-high data does not"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": "Reuse src/eval_e3 plumbing; this is the experiment recommended to upgrade C5 from suggestive to causal."
+      "passes": true,
+      "notes": "DONE: src/eval_e3/cutoff_probe.py — split_by_cutoff (pre/post training cutoff) + leakage_flag (pre-high & post-chance => leakage). 4 tests green. Upgrades C5 toward causal."
     },
     {
       "id": "T-007",
