@@ -162,6 +162,15 @@ class TCNCrossAttnPatternCore(nn.Module):
         logits = self.classifier(z)
         return logits
 
+    def forward_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Per-timestep temporal features [B, T, d] (after TCN + cross-attn),
+        for sequence heads such as OnsetIntensityHead (T-008)."""
+        x_perm = x.transpose(1, 2)
+        H_T = self.tcn(x_perm).transpose(1, 2)   # [B, T, d]
+        H_S = self.space_embed(x_perm)           # [B, F, d]
+        H_T_out, _ = self.st_cross_attn(H_T, H_S)
+        return H_T_out                           # [B, T, d]
+
 
 # ─── Training utilities ────────────────────────────────────────────────
 
