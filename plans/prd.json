@@ -71,8 +71,8 @@
         "lambda (penalty weight) and environment list are configurable"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Keep assertions structural; do NOT assert it beats ERM (known to be regime-dependent)."
+      "passes": true,
+      "notes": "DONE: src/training/irm_onset.py — irm_penalty(logits,targets,loss_fn) (IRMv1 dummy-scale grad penalty) + train_step(model,environments,optimizer,irm_lambda). Realized signature is (logits,targets,loss_fn). Structural tests only (penalty finite, IRM objective decreases) per SIGN-008. 2 CPU tests green."
     },
     {
       "id": "T-005",

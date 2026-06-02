@@ -26,3 +26,5 @@ T-008 (integration) depends on T-001..T-005 + T-007 → do LAST.
   - **Next:** T-007, T-004, T-005, T-006; T-008 integration last.
 - **T-007 DONE**: `src/training/objectives.py` — `soft_rank` (pairwise-sigmoid), `soft_rank_ic_loss` (=-soft-Spearman IC), `topk_utility_loss` (=-softmax-weighted top-k return). Differentiable, replaces CE. 3 CPU tests green.
   - **Next:** T-004 (IRM), T-005 (evaluator), T-006 (cutoff probe); T-008 integration last.
+- **T-004 DONE**: `src/training/irm_onset.py` — `irm_penalty` (IRMv1 dummy-scale grad penalty) + `train_step` (mean-env ERM + λ·mean-env IRM penalty). Environments = walk-forward splits/quarters. Structural tests only (SIGN-008). 2 CPU tests green.
+  - **Next:** T-005 (evaluator), T-006 (cutoff probe); T-008 integration last.
