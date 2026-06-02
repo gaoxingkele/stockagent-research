@@ -116,8 +116,8 @@
         "synthetic test: gradient flows (requires_grad), and perfectly-ranked scores give near-optimal loss"
       ],
       "priority": 7,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "DONE: src/training/objectives.py (soft_rank via pairwise sigmoid; soft_rank_ic_loss = -soft-Spearman IC; topk_utility_loss = -softmax-weighted top-k return). Differentiable. 3 CPU tests green."
     },
     {
       "id": "T-008",

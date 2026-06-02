@@ -24,3 +24,5 @@ T-008 (integration) depends on T-001..T-005 + T-007 → do LAST.
   - **Next:** T-003 (neural intensity head), T-007 (objectives) — both torch/CPU, independent. Then T-004, T-005, T-006; T-008 last.
 - **T-003 DONE**: `src/models/onset_intensity.py` — `OnsetIntensityHead` ([B,T,D]→softplus λ[B,T]) + `discrete_time_nll` (Bernoulli hazard p=1-exp(-λ)). Decoupled from encoder for hermetic testing. 3 CPU tests green (torch import ~35s one-time).
   - **Next:** T-007, T-004, T-005, T-006; T-008 integration last.
+- **T-007 DONE**: `src/training/objectives.py` — `soft_rank` (pairwise-sigmoid), `soft_rank_ic_loss` (=-soft-Spearman IC), `topk_utility_loss` (=-softmax-weighted top-k return). Differentiable, replaces CE. 3 CPU tests green.
+  - **Next:** T-004 (IRM), T-005 (evaluator), T-006 (cutoff probe); T-008 integration last.
