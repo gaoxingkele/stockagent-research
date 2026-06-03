@@ -24,7 +24,9 @@
         "rolling relative-position features over prior N bars: close percentile in prior-N high-low range, breakout flag (C > max prior-N high), dist-from-prior-N-low in ATR units, consecutive higher-lows count, volume ratio recent vs prior-N mean, compression (recent range / prior-N range)",
         "hermetic synthetic OHLCV test: features finite, scale-invariant (scaling all prices leaves geometry unchanged), breakout flag correct on a constructed breakout"
       ],
-      "priority": 1, "passes": false, "notes": "Scale-invariance is the key property (relative position). Handle range=0 / short history."
+      "priority": 1,
+      "passes": true,
+      "notes": "DONE: src/onset/candle_geometry.py (per_bar_geometry + relative_position + candle_features + panel wrapper; scale-invariant, point-in-time). 3 hermetic tests green (finite, scale-invariance, breakout flag)."
     },
     {
       "id": "K2",
@@ -37,7 +39,9 @@
         "anchor_sequences(panel, anchor_keys, window) -> [N, W, n_geom] geometry sequence + valid mask (reuse build_anchor_sequences pattern)",
         "hermetic synthetic test: shapes correct; point-in-time respected (no bar on/after the target date used)"
       ],
-      "priority": 2, "passes": false, "notes": "Reuse src/train_tcn_wf.build_anchor_sequences logic for the sequence path."
+      "priority": 2,
+      "passes": false,
+      "notes": "Reuse src/train_tcn_wf.build_anchor_sequences logic for the sequence path."
     },
     {
       "id": "K3",
@@ -51,7 +55,9 @@
         "writes results/candle/lgbm.json; hermetic smoke green; real run executed + committed; verdict per SIGN-K1 recorded in progress.md",
         "$0"
       ],
-      "priority": 3, "passes": false, "notes": "Depends K1,K2. SIGN-K1: alpha only if pooled NET long-short Sharpe CI excludes 0 AND positive in >=2/3 splits."
+      "priority": 3,
+      "passes": false,
+      "notes": "Depends K1,K2. SIGN-K1: alpha only if pooled NET long-short Sharpe CI excludes 0 AND positive in >=2/3 splits."
     },
     {
       "id": "K4",
@@ -65,7 +71,9 @@
         "writes results/candle/seq.json; hermetic smoke <30s green; real run executed + committed; verdict recorded",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends K2. Reuse train_onset_real machinery. Keep modest (XPU, few min)."
+      "priority": 4,
+      "passes": false,
+      "notes": "Depends K2. Reuse train_onset_real machinery. Keep modest (XPU, few min)."
     },
     {
       "id": "K5",
@@ -78,7 +86,9 @@
         "writes results/candle/ablation.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 5, "passes": false, "notes": "Depends K2, K3. Reuse src/train_tcn_wf.select_feature_columns for the factor set."
+      "priority": 5,
+      "passes": false,
+      "notes": "Depends K2, K3. Reuse src/train_tcn_wf.select_feature_columns for the factor set."
     },
     {
       "id": "K6",
@@ -91,7 +101,9 @@
         "computes the alpha1 verdict: REAL only if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe > 0 in >=2/3 splits; else 'overfit/single-split' or 'null'",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 6, "passes": false, "notes": "Depends K3,K4,K5."
+      "priority": 6,
+      "passes": false,
+      "notes": "Depends K3,K4,K5."
     }
   ]
 }
