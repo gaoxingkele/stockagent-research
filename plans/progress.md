@@ -53,3 +53,12 @@ Gate: pytest tests/algo. SIGN-R1: real experiments gate on machinery, null findi
   - **Next:** WS2 (distillation, real XPU), then SYN.
 - **WS2 DONE + REAL**: `src/identify/run_distill.py` (LightGBM downstream, two arms). FINDING (held-out split3 clustered RankIC): ArmA true-labels **+0.109** [+0.037,+0.184]; ArmB +LLM-weak-refined **-0.040** [-0.114,+0.028]; identified improvement **-0.149** -> LLM-as-weak-supervisor HURTS (79.8% labels overwritten). Clean attribution under leakage-freeness; consistent with ID3 (~0 contribution). smoke green.
   - **Next:** SYN (synthesis: ID3+WS2+DB2 -> table+figure). LAST.
+- **SYN DONE + REAL**: `src/identify/summarize_identify.py` -> results/identify/summary.md + paper/sections/figures/identify_summary.png. WS2 improvement CI [-0.298,-0.009] excludes 0 (LLM weak supervision significantly HURTS).
+
+## COMPLETE (onset/identify)
+All 8 tasks pass (CF skipped, needs paid LLM). Full gate pytest tests/algo = 43 passed.
+HEADLINE FINDINGS (all on leakage-free A-shares, identification HOLDS):
+  - ID3: identified LLM contribution over LGBM ~ 0 (raw +0.033 [-0.037,+0.110], expert +0.006 [-0.062,+0.078]).
+  - WS2: LLM-as-weak-supervisor HURTS (-0.149 [-0.298,-0.009]).
+  - DB2: de-biased FinBen collapses to ~chance (ACL 0.440 / BigData 0.388 / CIKM 0.485); ~all headline US "skill" = memorization.
+Net: the first IDENTIFIED measurement says LLM reasoning adds ~nothing to A-share onset prediction, and the field s positive numbers are memorization.

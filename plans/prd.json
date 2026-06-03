@@ -119,7 +119,7 @@
         "reads the three results/identify/* artifacts and writes results/identify/summary.md + paper/sections/figures/identify_summary.png",
         "hermetic smoke green; real run executed + figure committed"
       ],
-      "priority": 8, "passes": false, "notes": "Depends ID3, WS2, DB2. LAST task."
+      "priority": 8, "passes": true, "notes": "DONE + REAL: src/identify/summarize_identify.py -> results/identify/summary.md + paper/sections/figures/identify_summary.png. Forest plot (all identified estimates ~0/negative) + FinBen de-bias bars. smoke green; full gate 43 passed."
     },
     {
       "id": "CF",
