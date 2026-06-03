@@ -35,3 +35,10 @@ T-008 (integration) depends on T-001..T-005 + T-007 → do LAST.
 
 ## COMPLETE
 All 8 backlog tasks pass; full gate `pytest tests/algo` = 26 passed. Branch onset/algo-impl. The reference onset (启动子) pipeline is implemented end-to-end with hermetic tests. Next (human/research): run train_onset on the REAL walk-forward data, run the cutoff-probe on real LLM scores to make C5 causal, and swap TinyEncoder -> TCN encoder.
+
+## NEW LINE (onset/identify) — leakage-free identification of LLM contribution
+Backlog reset to plans/prd.json (old onset-algo backlog archived -> plans/prd_onset_done.json, all 8 done).
+Goal: first IDENTIFIED estimate of LLM reasoning contribution on leakage-free A-shares + LLM-as-weak-supervisor distillation + leakage-calibrated de-biasing of FinBen. Branch onset/identify.
+Dependency order: ID1->ID2->ID3 ; WS1->WS2 ; DB1->DB2 ; SYN last. CF is skip (needs paid LLM).
+Key reusable $0 data: results/poc_full (A-share LLM scores+_fwd_r5), results/e3_* (FinBen+A-share no-context), src/evaluation/onset_eval.py, src/onset/*, src/train_onset_real.py.
+Gate: pytest tests/algo. SIGN-R1: real experiments gate on machinery, null findings are valid.

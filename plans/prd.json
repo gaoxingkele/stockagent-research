@@ -1,138 +1,138 @@
 {
   "repo": "gaoxingkele/stockagent-research",
-  "goal": "Implement a regime-invariant neural intensity model of stock-movement ONSET (启动子), with PU/weak-supervised labels and a leakage-safe, cluster-robust evaluation protocol. This operationalizes the frontier directions recommended for the onset concept. The contribution is the FORMALIZATION + reference method + benchmark, NOT raw predictive alpha (the signal is known to be weak).",
+  "branchName": "onset/identify",
+  "goal": "Identify the CAUSAL contribution of LLM reasoning to stock-movement onset detection on a LEAKAGE-FREE substrate (2025 A-shares, where we proved the LLM's memory channel is null: no-context accuracy = 48.6% = chance). The field's 'LLM helps' results are unidentified (memory + reasoning confounded); on leakage-free data the contribution is identified. Deliverables: (1) a leakage-validity-gated identification estimator of LLM contribution, (2) LLM-as-weak-supervisor distillation with clean attribution, (3) a leakage-calibrated de-biasing estimator that corrects contaminated US-benchmark scores. The contribution is MEASUREMENT/IDENTIFICATION, not predictive performance.",
   "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
-  "env": "Use .venv-xpu (Python 3.11 + torch-xpu). Run everything via .venv-xpu\\Scripts\\python.exe.",
+  "env": "Use .venv-xpu (Python 3.11 + torch-xpu). Reuse existing scored data so real experiments cost $0: results/poc_full/predictions.parquet (A-share LLM raw/expert scores + _fwd_r5 + ts_code/trade_date), results/e3_*/ (FinBen + A-share no-context), src/eval_e3 (add_lgbm), src/evaluation/onset_eval.py (clustered bootstrap), src/onset/{pu_labels,weak_supervision}.py, src/train_onset_real.py.",
   "acceptanceCriteria": [
     "verifyCommand (pytest tests/algo) passes",
-    "Every task ships a hermetic test (synthetic data, <5s, no network, no GPU required) that fails before the deliverable exists and passes after",
-    "The GATE is 'component runs and produces structurally-valid output', NOT 'beats a baseline' — weak signal must never block completion",
-    "No look-ahead: any feature/label builder is point-in-time safe (asserted in tests)"
+    "Method tasks ship a hermetic test (synthetic, <5s, CPU, no network) that fails before the deliverable exists",
+    "REAL-experiment tasks: the hermetic SMOKE test is green AND the real experiment has been run and its results/identify/<...>/stats.json committed; the numeric FINDING (including a null/zero estimate) is RECORDED, never gates completion (SIGN-R1)",
+    "Every identified estimate carries a date-clustered 95% CI and a stated leakage-validity check (SIGN-R3)",
+    "No new LLM API spend unless a task explicitly says so (SIGN-R2)"
   ],
   "tasks": [
     {
-      "id": "T-001",
-      "title": "PU-learning onset label builder",
-      "deliverable": "src/onset/pu_labels.py",
-      "test": "tests/algo/test_pu_labels.py",
-      "rationale": "The onset label is ill-defined; 'non-onset' is Unlabeled, not Negative. Frames labeling as Positive-Unlabeled learning (nnPU risk).",
+      "id": "ID1",
+      "title": "Leakage-validity test (the identification precondition)",
+      "deliverable": "src/identify/leakage_validity.py",
+      "test": "tests/algo/test_leakage_validity.py",
+      "rationale": "Identification requires the LLM memory channel ~ 0. Formalize the no-context-at-chance probe as a checkable precondition.",
       "acceptanceCriteria": [
-        "build_pu_sets(df, positive_mask) returns disjoint Positive / Unlabeled index sets",
-        "nnpu_risk(scores, labels, prior_pi) returns a finite scalar and respects the non-negative correction",
-        "prior pi is a configurable argument (default from positive rate)",
-        "test uses synthetic data only and asserts shapes + that risk decreases when scores align with true positives"
+        "leakage_validity(no_ctx_acc, no_ctx_ci, chance=0.5) returns {holds: bool, margin, reason}",
+        "holds=True iff the no-context accuracy CI does NOT lie above chance (memory channel null) -- A-share case",
+        "holds=False when no-context >> chance (US/contaminated case)",
+        "hermetic synthetic test for both cases"
       ],
-      "priority": 1,
-      "passes": true,
-      "notes": "DONE: src/onset/pu_labels.py (build_pu_sets/class_prior/nnpu_risk, Kiryo 2017 nnPU, sigmoid surrogate); 5 hermetic tests green."
+      "priority": 1, "passes": false, "notes": "A-share no-context = 0.486 CI [0.454,0.517] -> holds. FinBen 0.72-0.80 -> fails."
     },
     {
-      "id": "T-002",
-      "title": "Weak-supervision label model over expert rules",
-      "deliverable": "src/onset/weak_supervision.py",
-      "test": "tests/algo/test_weak_supervision.py",
-      "rationale": "Turn V12.31 expert rules (bottoms_rising / above_5d_low_5pct / ma_pattern_ok / volume_boost) from hard rules into labeling functions aggregated by a generative label model (Snorkel-style). Directly upgrades contribution C1.",
+      "id": "ID2",
+      "title": "Identified LLM-contribution estimator",
+      "deliverable": "src/identify/contribution.py",
+      "test": "tests/algo/test_contribution.py",
+      "rationale": "On leakage-free data, the LLM's incremental predictive content beyond a tabular baseline is the identified reasoning contribution.",
       "acceptanceCriteria": [
-        "label_model(lf_matrix) accepts an N x K matrix of LF votes in {-1,0,+1} (0=abstain)",
-        "returns soft labels in [0,1] per anchor and an estimated accuracy per LF",
-        "majority-vote fallback is available; abstains are handled",
-        "synthetic test: when one LF is near-perfect and others noisy, the model upweights the good LF"
+        "incremental_contribution(baseline_score, llm_score, target, dates) returns the identified incremental rank-IC of the LLM beyond the baseline (e.g. rank-IC of LLM residualized on baseline, or combined-minus-baseline) with a date-clustered 95% CI (reuse onset_eval.clustered_bootstrap)",
+        "synthetic: when LLM carries signal beyond baseline -> estimate > 0; when LLM = baseline + noise -> CI spans 0",
+        "hermetic"
       ],
-      "priority": 2,
-      "passes": true,
-      "notes": "DONE: src/onset/weak_supervision.py (majority_vote + EM-like label_model, accuracy-weighted log-odds, soft labels in [0,1], abstain->0.5). 4 hermetic tests green."
+      "priority": 2, "passes": false, "notes": "Reuse src/evaluation/onset_eval.py clustered_bootstrap."
     },
     {
-      "id": "T-003",
-      "title": "Neural onset-intensity head (temporal point process)",
-      "deliverable": "src/models/onset_intensity.py",
-      "test": "tests/algo/test_onset_intensity.py",
-      "rationale": "Reframe onset as an event intensity lambda(t) on top of the existing TCN encoder, not a 5-day return class. Matches the '起点' semantics; enables self/cross-exciting (sector contagion) later.",
+      "id": "ID3",
+      "title": "REAL: identified LLM contribution on leakage-free A-shares",
+      "deliverable": "src/identify/run_ashare_identify.py",
+      "test": "tests/algo/test_run_ashare_identify_smoke.py",
+      "rationale": "The first IDENTIFIED (not confounded) estimate of LLM value-add in stock onset prediction. Likely ~0 -- that is itself the key finding.",
       "acceptanceCriteria": [
-        "OnsetIntensityHead consumes encoder features [B,T,D] and outputs positive intensity [B,T] via softplus",
-        "discrete_time_nll(intensity, event_mask) returns a finite loss",
-        "runs on CPU; no XPU/GPU required for the test",
-        "synthetic test: loss is finite and decreases over a few optimizer steps on a trivial fit"
+        "uses results/poc_full/predictions.parquet (A-share LLM raw_p_up/expert_p_up + _fwd_r5) and the LGBM baseline (reuse src/agent/eval_hybrid.add_lgbm_predictions)",
+        "checks leakage_validity (ID1) using the A-share no-context result (results/e3_ashare/summary.json); records holds=True",
+        "writes results/identify/ashare/stats.json with leakage_validity + identified contribution (raw & expert) with clustered CI vs _fwd_r5",
+        "hermetic smoke test on synthetic is green; the real run is executed and stats.json committed; the finding (incl. null) recorded in progress.md",
+        "$0 new LLM cost"
       ],
-      "priority": 3,
-      "passes": true,
-      "notes": "DONE: src/models/onset_intensity.py (OnsetIntensityHead softplus lambda>=0; discrete_time_nll Bernoulli-hazard p=1-exp(-lambda)). Decoupled from encoder (consumes [B,T,D]). 3 CPU tests green."
+      "priority": 3, "passes": false, "notes": "Depends ID1, ID2. SIGN-R1: do not gate on the estimate being nonzero."
     },
     {
-      "id": "T-004",
-      "title": "Regime-invariant trainer (IRM / HRM)",
-      "deliverable": "src/training/irm_onset.py",
-      "test": "tests/algo/test_irm_onset.py",
-      "rationale": "Directly attacks contribution C4 (cross-quarter heterogeneity, oracle headroom uncaptured). Environments = walk-forward splits/quarters; learn an invariant onset mechanism. NOTE: IRM only helps under diverse spurious correlations — keep test structural.",
+      "id": "WS1",
+      "title": "LLM -> labeling-function adapter",
+      "deliverable": "src/identify/llm_lf.py",
+      "test": "tests/algo/test_llm_lf.py",
+      "rationale": "Use the LLM as a weak supervisor (knowledge injector), not a predictor: turn its signals into labeling functions feeding the T-002 label model.",
       "acceptanceCriteria": [
-        "irm_penalty(loss, logits) returns a finite gradient-penalty scalar",
-        "train_step aggregates ERM loss across environments + lambda * IRM penalty",
-        "synthetic 2-environment test with one spurious feature: total penalty is finite and decreases over steps",
-        "lambda (penalty weight) and environment list are configurable"
+        "llm_to_lf(df, thresholds) maps LLM signals (p_up, pump_ratio, expert onset_score) to votes in {-1,0,+1} (0=abstain)",
+        "output is a valid N x K LF matrix consumable by src/onset/weak_supervision.label_model",
+        "hermetic synthetic test; abstains handled"
       ],
-      "priority": 4,
-      "passes": true,
-      "notes": "DONE: src/training/irm_onset.py — irm_penalty(logits,targets,loss_fn) (IRMv1 dummy-scale grad penalty) + train_step(model,environments,optimizer,irm_lambda). Realized signature is (logits,targets,loss_fn). Structural tests only (penalty finite, IRM objective decreases) per SIGN-008. 2 CPU tests green."
+      "priority": 4, "passes": false, "notes": "Reuse src/onset/weak_supervision.py."
     },
     {
-      "id": "T-005",
-      "title": "Leakage-safe, cluster-robust onset evaluator",
-      "deliverable": "src/evaluation/onset_eval.py",
-      "test": "tests/algo/test_onset_eval.py",
-      "rationale": "Unify C3 (date-clustered bootstrap) + C5 (leakage guard) into one evaluation entry for onset models.",
+      "id": "WS2",
+      "title": "REAL: LLM-as-weak-supervisor distillation, clean attribution",
+      "deliverable": "src/identify/run_distill.py",
+      "test": "tests/algo/test_run_distill_smoke.py",
+      "rationale": "Does LLM KNOWLEDGE (not memory) improve a downstream onset detector? On leakage-free data the improvement is cleanly attributable.",
       "acceptanceCriteria": [
-        "clustered_bootstrap(metric_fn, preds, target, dates) returns mean + 95% CI by resampling whole dates",
-        "point_in_time_guard(feature_dates, target_date) raises if any feature timestamp >= target_date",
-        "synthetic test: clustered CI is wider than the anchor-independent CI; PIT guard raises on a leaked feature"
+        "two arms: onset detector trained with fixed-horizon labels only vs labels augmented by LLM-derived weak supervision (WS1 + weak_supervision.label_model)",
+        "reuse the src/train_onset_real.py machinery; evaluate held-out with clustered RankIC (onset_eval)",
+        "writes results/identify/distill/stats.json with both arms + the identified improvement + clustered CIs",
+        "hermetic smoke green; real run executed + stats committed; improvement (incl. null) recorded",
+        "$0 new LLM cost"
       ],
-      "priority": 5,
-      "passes": true,
-      "notes": "DONE: src/evaluation/onset_eval.py — clustered_bootstrap (resample whole dates) + naive_bootstrap (for contrast) + point_in_time_guard (raises on feature date >= target). 3 tests green (clustered CI wider; PIT guard raises)."
+      "priority": 5, "passes": false, "notes": "Depends WS1, ID1. Keep modest (XPU, few minutes)."
     },
     {
-      "id": "T-006",
-      "title": "Cutoff-controlled leakage probe (high-ROI: makes C5 causal)",
-      "deliverable": "src/eval_e3/cutoff_probe.py",
-      "test": "tests/algo/test_cutoff_probe.py",
-      "rationale": "Run the no-context ablation split by pre/post a configurable model-training-cutoff date. If post-cutoff accuracy collapses to chance, temporal leakage is proven causally (not just 'implausibly high').",
+      "id": "DB1",
+      "title": "Leakage-calibrated de-biasing estimator",
+      "deliverable": "src/identify/debias.py",
+      "test": "tests/algo/test_debias.py",
+      "rationale": "Context HURTS on memorized US data but can only help on clean A-shares; use the clean context-effect as a reference to subtract the memorization component from contaminated US scores. Exports value to the whole field.",
       "acceptanceCriteria": [
-        "split_by_cutoff(df, cutoff_date) returns pre/post frames",
-        "leakage_flag(acc_pre, acc_post, chance=0.5, tol) returns True when pre is high but post ~ chance",
-        "synthetic test: fabricated pre(high)/post(chance) data triggers the flag; matched-high data does not"
+        "debias_accuracy(us_full, us_nocontext, clean_full, clean_nocontext, chance=0.5) returns a memorization-corrected 'reasoning' accuracy estimate for the contaminated market, with the stated calibration assumption",
+        "synthetic with a known memorization component -> estimator recovers the reasoning part",
+        "hermetic"
       ],
-      "priority": 6,
-      "passes": true,
-      "notes": "DONE: src/eval_e3/cutoff_probe.py — split_by_cutoff (pre/post training cutoff) + leakage_flag (pre-high & post-chance => leakage). 4 tests green. Upgrades C5 toward causal."
+      "priority": 6, "passes": false, "notes": "State the comparability assumption explicitly in the docstring."
     },
     {
-      "id": "T-007",
-      "title": "Differentiable ranking / utility objective",
-      "deliverable": "src/training/objectives.py",
-      "test": "tests/algo/test_objectives.py",
-      "rationale": "Cross-entropy barely beats random (ln3); train on the deployment objective. Differentiable soft-rank IC + top-K / Sharpe-style utility.",
+      "id": "DB2",
+      "title": "REAL: de-bias the FinBen US benchmark scores",
+      "deliverable": "src/identify/run_debias_finben.py",
+      "test": "tests/algo/test_run_debias_finben_smoke.py",
+      "rationale": "Apply the de-biasing estimator to the real FinBen results using the A-share calibration.",
       "acceptanceCriteria": [
-        "soft_rank_ic_loss(scores, returns) is differentiable and finite",
-        "topk_utility_loss(scores, returns, k) is differentiable and finite",
-        "synthetic test: gradient flows (requires_grad), and perfectly-ranked scores give near-optimal loss"
+        "reads results/e3_{acl,bigdata,cikm}/leakage_summary.json (full + no-context) and results/e3_ashare/summary.json (clean calibration)",
+        "writes results/identify/debias/finben_corrected.json with per-benchmark corrected reasoning estimates",
+        "hermetic smoke green; real run executed + output committed",
+        "$0 new LLM cost"
       ],
-      "priority": 7,
-      "passes": true,
-      "notes": "DONE: src/training/objectives.py (soft_rank via pairwise sigmoid; soft_rank_ic_loss = -soft-Spearman IC; topk_utility_loss = -softmax-weighted top-k return). Differentiable. 3 CPU tests green."
+      "priority": 7, "passes": false, "notes": "Depends DB1."
     },
     {
-      "id": "T-008",
-      "title": "Integration: regime-invariant neural onset model end-to-end",
-      "deliverable": "src/train_onset.py",
-      "test": "tests/algo/test_train_onset_smoke.py",
-      "rationale": "Wire encoder + intensity head (T-003) + IRM trainer (T-004) + PU/weak labels (T-001/T-002) + ranking objective (T-007), evaluated by the cluster-robust evaluator (T-005).",
+      "id": "SYN",
+      "title": "Synthesis: identification results table + figure",
+      "deliverable": "src/identify/summarize_identify.py",
+      "test": "tests/algo/test_summarize_identify_smoke.py",
+      "rationale": "Aggregate the identified A-share contribution (ID3), the distillation attribution (WS2), and the FinBen de-biasing (DB2) into one paper-ready table + figure.",
       "acceptanceCriteria": [
-        "train_onset runs 1 tiny epoch on synthetic walk-forward-shaped data end-to-end",
-        "produces a metrics dict via src/evaluation/onset_eval.py and writes results/onset/<run>/stats.json",
-        "smoke test runs on CPU in <30s and asserts the stats file is written with expected keys"
+        "reads the three results/identify/* artifacts and writes results/identify/summary.md + paper/sections/figures/identify_summary.png",
+        "hermetic smoke green; real run executed + figure committed"
       ],
-      "priority": 8,
-      "passes": true,
-      "notes": "DONE: src/train_onset.py — wires encoder + OnsetIntensityHead/NLL (T-003) + IRM penalty (T-004) + PU prior (T-001) + weak-supervision soft labels (T-002) + soft-rank-IC objective (T-007), evaluated by clustered_bootstrap (T-005). 1 tiny epoch on synthetic walk-forward data, writes results/onset/<run>/stats.json. Smoke test <4s CPU. ALL 8 tasks green (26 tests)."
+      "priority": 8, "passes": false, "notes": "Depends ID3, WS2, DB2. LAST task."
+    },
+    {
+      "id": "CF",
+      "title": "(OPTIONAL) Counterfactual prompt-intervention attribution",
+      "deliverable": "src/identify/run_counterfactual.py",
+      "test": "tests/algo/test_run_counterfactual_smoke.py",
+      "rationale": "Perturb prompt components (drop factor / flip signal / anonymize) and measure the causal effect on the LLM prediction, validated against unmemorizable future returns. Direction 4.",
+      "acceptanceCriteria": [
+        "perturbation harness + attribution; validity only under leakage-free data",
+        "REQUIRES new A-share LLM scoring (cost) -> needs human approval"
+      ],
+      "priority": 9, "passes": false, "skip": true,
+      "skipReason": "Requires new LLM API calls (cost); needs human approval before the loop incurs spend. Flip skip:false to enable."
     }
   ]
 }

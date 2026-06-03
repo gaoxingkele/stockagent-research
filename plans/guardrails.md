@@ -41,3 +41,18 @@ Learned constraints read at the start of every Ralph iteration. Progress persist
 **Trigger:** working on T-004 (regime-invariant).
 **Instruction:** Keep IRM assertions STRUCTURAL (penalty finite, decreases over steps). Do NOT assert IRM beats ERM — it only helps under diverse spurious correlations and can underperform ERM otherwise.
 **Reason:** Over-claiming IRM superiority would be false and would make the test flaky.
+
+### SIGN-R1: REAL-experiment gate = machinery-runs, finding is RECORDED not gated
+**Trigger:** a task marked REAL (ID3/WS2/DB2/SYN).
+**Instruction:** The task passes when its hermetic smoke test is green AND the real experiment script has been run end-to-end and its stats.json committed under results/identify/. The NUMERIC finding — including a null/zero/negative identified contribution — is written to progress.md but NEVER gates completion. A clean null is a valid, important result for this research line.
+**Reason:** This line's contribution is identification/measurement, not performance. A performance gate would be dishonest and would never converge (signal is weak).
+
+### SIGN-R2: No new LLM spend without explicit approval
+**Trigger:** any task that would call the LLM API.
+**Instruction:** ID3/WS2/DB2 must reuse existing scored data (results/poc_full, results/e3_*) for $0 cost. Do NOT add new LLM calls. The only task allowed to need new scoring is CF, which is skip:true until a human flips it.
+**Reason:** Autonomous loop must not incur surprise API spend.
+
+### SIGN-R3: Every identified estimate carries a clustered CI + a leakage-validity check
+**Trigger:** reporting any identified contribution or corrected estimate.
+**Instruction:** Use date-clustered bootstrap (src/evaluation/onset_eval.clustered_bootstrap), report absolute estimates with 95% CIs, and state whether the leakage-validity precondition (ID1) holds for the data used. An estimate without a passing validity check is not "identified" — label it accordingly.
+**Reason:** The whole novelty is identification under the no-leakage condition; the CI and the validity check are what make the estimate trustworthy.
