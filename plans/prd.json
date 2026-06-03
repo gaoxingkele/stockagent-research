@@ -24,7 +24,7 @@
         "holds=False when no-context >> chance (US/contaminated case)",
         "hermetic synthetic test for both cases"
       ],
-      "priority": 1, "passes": false, "notes": "A-share no-context = 0.486 CI [0.454,0.517] -> holds. FinBen 0.72-0.80 -> fails."
+      "priority": 1, "passes": true, "notes": "DONE: src/identify/leakage_validity.py (holds iff no-context CI lower bound <= chance). Verified on REAL data: A-share holds=True (margin -0.014), ACL18 holds=False (margin +0.233). 4 hermetic tests green."
     },
     {
       "id": "ID2",
