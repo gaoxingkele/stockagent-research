@@ -102,8 +102,8 @@
         "hermetic smoke green; real run + committed"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": "Depends K3,K4,K5."
+      "passes": true,
+      "notes": "DONE+REAL: src/onset/summarize_candle.py -> summary.md + figure. VERDICT: no confirmed alpha1; factors+candle PROMISING (pooled net CI excludes 0, Sharpe 1.76, incremental +0.95) but per-split unconfirmed; candle-only null after cost. full gate 67 passed."
     }
   ]
 }

@@ -101,3 +101,7 @@ SIGN-K1: alpha ONLY if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe
   - **Next:** K5 ablation, K6 verdict (LAST).
 - **K5 DONE+REAL** (caught+fixed a _fwd_r5 leak in factor_cols -> had given absurd RankIC 0.825). FINDING: candle geometry is COMPLEMENTARY to the 165 smoothed factors -- pooled net long-short Sharpe factors 0.81 -> factors+candle 1.76 (incremental **+0.95**), RankIC 0.061 -> 0.083. candle-alone net negative. Strongest positive signal in project, but pooled-only; per-split SIGN-K1 verdict in K6.
   - **Next:** K6 synthesis + alpha1 verdict (LAST).
+- **K6 DONE+REAL**: `src/onset/summarize_candle.py` -> results/candle/summary.md + figure. full gate 67 passed.
+
+## COMPLETE (research/candlestick-onset)
+alpha1 VERDICT (SIGN-K1): NO confirmed tradable alpha. candle-only (K3/K4) = null after 0.4% cost (pooled net CI spans 0). BUT candle geometry is COMPLEMENTARY to smoothed factors: factors+candle pooled net long-short CI EXCLUDES 0 (Sharpe 1.76, RankIC 0.083), incremental +0.95 net Sharpe over factors -> labelled PROMISING-UNCONFIRMED (per-split net robustness not yet measured for that combo). Candle geometry also gives the strongest pooled market-neutral RankIC in the project (seq +0.062, factors+candle +0.083). DECISIVE NEXT: per-split net long-short of factors+candle (must be >0 in >=2/3 splits incl the C4-unstable split3) to clear the full SIGN-K1 bar.
