@@ -72,8 +72,8 @@
         "$0"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Depends K2. Reuse train_onset_real machinery. Keep modest (XPU, few min)."
+      "passes": true,
+      "notes": "DONE+REAL(XPU,328s,3 splits x3 seeds). FINDING: learned candle-seq pooled market-neutral RankIC +0.062 [+0.036,+0.089] (excludes 0, > K3 flat +0.039); pooled NET long-short Sharpe 0.63, net mean CI [-0.0022,+0.0099] spans 0 -> not cost-surviving. Same verdict as K3. seq.json committed."
     },
     {
       "id": "K5",
