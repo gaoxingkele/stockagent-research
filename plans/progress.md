@@ -68,3 +68,6 @@ Backlog reset to plans/prd.json (identify backlog archived -> plans/prd_identify
 Goal: (1) leakage-freeness is a (model x market x period) property — China-trained LLMs may have memorized A-shares, flipping the validity test; (2) de-biasing estimator as standalone methods contribution. Branch research/leakage-frontier.
 Tasks: LF1 multi-model probe harness -> LF2 frontier aggregator; ID-SCALE ($0 full-anchor x horizon); DBX1 de-bias sensitivity -> DBX2 ($0 benchmark table); SYN2 synthesis. LF3 (paid multi-model real) skip:true until novelty + cost approved.
 PRECONDITION: novelty-check (a) model-relative LLM-finance memorization (b) cross-market de-biasing BEFORE paid work.
+
+## SHELVED: leakage-frontier line (novelty check failed)
+LF (model-relative leakage) NOT novel — covered by DeepFund (per-model cutoff eval), MemGuard-Alpha (cross-model disagreement), general model-relative contamination lit. DBX (cross-market de-biasing) thin/uncertain — decontamination-correction genre crowded (ITD, DeconIEP reference-model, cross-lingual); cross-MARKET anchor adjacent but not clearly novel. Shelved -> plans/prd_leakage_frontier_shelved.json. No active prd until next direction decided. Paper to be retuned as case-study/experience+negative-results (pending).
