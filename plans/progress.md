@@ -94,3 +94,4 @@ Tasks: K1 candle geometry + relative-position features -> K2 dynamic 3-12 bar as
 SIGN-K1: alpha ONLY if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe>0 in >=2/3 splits -- fixes the NB5 single-split mirage. Prior market-neutral line merged + archived to prd_market_neutral_done.json.
 - **K1 DONE** (branch research/candlestick-onset): `src/onset/candle_geometry.py` -- per-bar geometry (body/wicks/close_loc/range_over_atr/gap) + relative-position (close_pct_prior/breakout/dist_low_atr/higher_lows/vol_ratio/compression), scale-invariant + point-in-time, panel wrapper. 3 hermetic tests green (finite, scale-invariance, breakout). Full gate 57 passed.
   - **Next:** K2 (3-12 bar assembler: flat + sequence) -> K3 LGBM all-split.
+- **K2 DONE**: `src/onset/candle_pattern.py` -- anchor_features (flat 3-bar vector) + anchor_sequences (W-bar geometry sequence), reuse build_anchor_sequences. Point-in-time verified (future bars do not leak). 2 hermetic tests green.

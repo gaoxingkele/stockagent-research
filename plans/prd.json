@@ -40,8 +40,8 @@
         "hermetic synthetic test: shapes correct; point-in-time respected (no bar on/after the target date used)"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "Reuse src/train_tcn_wf.build_anchor_sequences logic for the sequence path."
+      "passes": true,
+      "notes": "DONE: src/onset/candle_pattern.py (anchor_features flat + anchor_sequences, reuse build_anchor_sequences). 2 hermetic tests green incl point-in-time (future bars do not leak)."
     },
     {
       "id": "K3",
