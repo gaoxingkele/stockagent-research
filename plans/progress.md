@@ -71,3 +71,8 @@ PRECONDITION: novelty-check (a) model-relative LLM-finance memorization (b) cros
 
 ## SHELVED: leakage-frontier line (novelty check failed)
 LF (model-relative leakage) NOT novel — covered by DeepFund (per-model cutoff eval), MemGuard-Alpha (cross-model disagreement), general model-relative contamination lit. DBX (cross-market de-biasing) thin/uncertain — decontamination-correction genre crowded (ITD, DeconIEP reference-model, cross-lingual); cross-MARKET anchor adjacent but not clearly novel. Shelved -> plans/prd_leakage_frontier_shelved.json. No active prd until next direction decided. Paper to be retuned as case-study/experience+negative-results (pending).
+
+## NEW LINE (research/market-neutral-alpha) -- beta-timing vs alpha-selection identification
+Goal: target market/sector-NEUTRAL returns (idiosyncratic = where alpha lives), decompose into beta-timing (Macro agent) vs alpha-selection (Pattern Core), identify LLM contribution to EACH on leakage-free A-shares. $0 (reuse poc_full/poc_wf scores; neutral targets from _fwd_r5+trade_date+industry). Method not novel; contribution = leakage-free timing-vs-selection identification + honest tradable-alpha measurement.
+Tasks: NB1 neutral targets -> NB2 decomposition identifier -> NB3 REAL$0 (selection/timing + long-short Sharpe); NB4 contrastive encoder -> NB5 REAL XPU (contrastive vs raw, market-neutral eval); NB6 synthesis. No paid tasks.
+SIGN-A1: report tradable long-short, shrinkage != failure.

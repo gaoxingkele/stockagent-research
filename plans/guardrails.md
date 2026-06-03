@@ -56,3 +56,8 @@ Learned constraints read at the start of every Ralph iteration. Progress persist
 **Trigger:** reporting any identified contribution or corrected estimate.
 **Instruction:** Use date-clustered bootstrap (src/evaluation/onset_eval.clustered_bootstrap), report absolute estimates with 95% CIs, and state whether the leakage-validity precondition (ID1) holds for the data used. An estimate without a passing validity check is not "identified" — label it accordingly.
 **Reason:** The whole novelty is identification under the no-leakage condition; the CI and the validity check are what make the estimate trustworthy.
+
+### SIGN-A1: Report tradable (economic) alpha, not only IC; shrinkage is not failure
+**Trigger:** market-neutral / beta-decomposition tasks (NB-line).
+**Instruction:** Report the tradable market-neutral long-short return and its Sharpe (date-clustered/block bootstrap), not only RankIC. Market/sector neutralization REMOVES the beta component, so the idiosyncratic signal is EXPECTED to be smaller than raw -- a smaller-but-stable idiosyncratic signal is the goal, and a clean null is a valid finding. Never treat shrinkage vs raw as a failure or gate on it.
+**Reason:** Alpha = small, stable, leverable idiosyncratic predictability, not large beta-driven raw predictability. The honest measurement is the deliverable.

@@ -1,0 +1,97 @@
+{
+  "repo": "gaoxingkele/stockagent-research",
+  "branchName": "research/market-neutral-alpha",
+  "goal": "Hunt for (and honestly measure) idiosyncratic alpha by targeting MARKET/SECTOR-NEUTRAL returns instead of raw returns, and decompose the prediction problem into (a) beta = market/sector TIMING and (b) alpha = idiosyncratic SELECTION, then IDENTIFY the LLM's contribution to EACH on the leakage-free A-share substrate. Rationale: raw fwd returns are dominated by market/sector beta; alpha lives in the idiosyncratic residual (tradable market-neutral, regime-stable). Maps to V12-Agentic: Macro Regime agent = beta timing, Pattern Core = idiosyncratic selection. NOTE: the contrastive/market-neutral METHOD is not novel (asset-embedding contrastive learning, MASTER/HIST, market-neutralization are prior art); the contribution is the leakage-free IDENTIFICATION of LLM contribution to timing-vs-selection separately, plus an honest tradable-alpha measurement. Reuses existing scores -> $0 new LLM cost.",
+  "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
+  "env": "Use .venv-xpu. Reuse src/identify/* (leakage_validity, contribution), src/evaluation/onset_eval.py (clustered bootstrap), src/agent/eval_hybrid.add_lgbm_predictions, results/poc_full (A-share LLM scores + _fwd_r5 + trade_date + industry, self-contained $0) and results/poc_wf_split* (+ D1 merge for features). Neutral targets are computable from (_fwd_r5, trade_date, industry) alone -- no external index series needed (per-date cross-sectional demean = market-neutral; per-date per-industry demean = sector-neutral).",
+  "acceptanceCriteria": [
+    "verifyCommand (pytest tests/algo) passes",
+    "Method tasks ship a hermetic test (synthetic, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/identify/; findings (incl. nulls / shrinkage) recorded, never gated (SIGN-R1)",
+    "Report the TRADABLE market-neutral long-short return + Sharpe (economic alpha), not only RankIC (SIGN-A1)",
+    "$0 new LLM cost: reuse existing scores only (SIGN-R2)",
+    "Every estimate carries a date-clustered CI + leakage-validity check (SIGN-R3)"
+  ],
+  "tasks": [
+    {
+      "id": "NB1",
+      "title": "Neutral target builder (market / sector neutral + systematic components)",
+      "deliverable": "src/identify/neutral_targets.py",
+      "test": "tests/algo/test_neutral_targets.py",
+      "rationale": "Split raw forward return into systematic (market/sector) and idiosyncratic (neutral residual) components from existing columns only.",
+      "acceptanceCriteria": [
+        "market_neutral(df, ret='_fwd_r5', date='trade_date') = per-date cross-sectional demean (idiosyncratic vs market)",
+        "sector_neutral(df, ret, date, sector='industry') = per-date per-industry demean",
+        "systematic components also returned: per-date mean (market timing target) and per-date-per-industry mean (sector timing target)",
+        "hermetic synthetic test: neutral residuals sum ~0 within each date/group; raw = systematic + idiosyncratic"
+      ],
+      "priority": 1, "passes": false, "notes": "No external index needed; cross-sectional demean per date = market neutralization."
+    },
+    {
+      "id": "NB2",
+      "title": "Beta-timing vs alpha-selection identification",
+      "deliverable": "src/identify/decompose_identify.py",
+      "test": "tests/algo/test_decompose_identify.py",
+      "rationale": "Identify the LLM's contribution to (a) idiosyncratic SELECTION (cross-sectional, on the neutral target) and (b) market/sector TIMING (date-level aggregate predicting the systematic move) separately.",
+      "acceptanceCriteria": [
+        "selection_contribution(baseline, llm, neutral_target, dates) reuses ID2 incremental_contribution (partial rank corr + clustered CI)",
+        "timing_contribution(llm, systematic_by_date, dates) aggregates the LLM signal per date and correlates with the per-date systematic return (date-level, block/clustered CI); reports n_dates honestly",
+        "hermetic synthetic: selection>0 when LLM carries idiosyncratic signal; timing>0 when LLM aggregate predicts the market move; both ~0 / CI spans 0 otherwise"
+      ],
+      "priority": 2, "passes": false, "notes": "Reuse src/identify/contribution.py + onset_eval. Timing has few dates -> wide CI; report honestly."
+    },
+    {
+      "id": "NB3",
+      "title": "REAL ($0): neutral identification + tradable long-short on A-shares",
+      "deliverable": "src/identify/run_neutral_identify.py",
+      "test": "tests/algo/test_run_neutral_identify_smoke.py",
+      "rationale": "Is the idiosyncratic alpha contribution null? Is there ANY tradable market-neutral signal? First leakage-free, beta-decomposed measurement.",
+      "acceptanceCriteria": [
+        "uses results/poc_full/predictions.parquet (has _fwd_r5, trade_date, industry, raw_p_up, expert_p_up) + LGBM baseline (add_lgbm_predictions)",
+        "reports: LLM selection contribution (neutral target) + LLM timing contribution + the LGBM baseline's market-neutral top-vs-bottom long-short return and its Sharpe (clustered/block bootstrap)",
+        "checks leakage_validity (A-share) and records holds",
+        "writes results/identify/neutral/stats.json; hermetic smoke green; real run executed + committed; finding (incl. null/shrinkage) recorded in progress.md",
+        "$0 new LLM cost"
+      ],
+      "priority": 3, "passes": false, "notes": "Depends NB1, NB2. SIGN-A1: report tradable long-short Sharpe, not only IC. SIGN-R1: shrinkage/null is a valid finding."
+    },
+    {
+      "id": "NB4",
+      "title": "Contrastive stock-vs-reference encoder",
+      "deliverable": "src/identify/contrastive_encoder.py",
+      "test": "tests/algo/test_contrastive_encoder.py",
+      "rationale": "The representation-learning instantiation: take a stock sequence AND a reference (market/sector) sequence, learn the relative/spread representation, trained to predict the idiosyncratic (neutral) target.",
+      "acceptanceCriteria": [
+        "ContrastiveEncoder consumes stock seq [B,T,F] and reference seq [B,T,F] -> a relative embedding; a head predicts the neutral target",
+        "runs on CPU; loss finite and decreases over a few steps on synthetic where the idiosyncratic target is learnable from the spread",
+        "hermetic test"
+      ],
+      "priority": 4, "passes": false, "notes": "Reuse patterns from src/models/onset_intensity.py / TinyEncoder. Method not novel; the value is the clean target + identification."
+    },
+    {
+      "id": "NB5",
+      "title": "REAL (XPU, $0): contrastive vs raw, market-neutral evaluation",
+      "deliverable": "src/identify/run_contrastive.py",
+      "test": "tests/algo/test_run_contrastive_smoke.py",
+      "rationale": "Does targeting the idiosyncratic residual with the contrastive encoder yield a more stable / tradable signal than predicting raw returns?",
+      "acceptanceCriteria": [
+        "two arms on real A-share walk-forward data (reuse train_onset_real machinery + D1 features + NB1 neutral target): arm RAW (predict _fwd_r5) vs arm NEUTRAL (contrastive encoder predicting market/sector-neutral target)",
+        "held-out: market-neutral RankIC + long-short Sharpe per arm, clustered CIs",
+        "writes results/identify/contrastive/stats.json; hermetic smoke <30s green; real run executed + committed; finding recorded",
+        "$0 new LLM cost (compute only)"
+      ],
+      "priority": 5, "passes": false, "notes": "Depends NB1, NB4. Honest expectation: idiosyncratic signal is SMALLER but more regime-stable; shrinkage is not failure (SIGN-A1/R1)."
+    },
+    {
+      "id": "NB6",
+      "title": "Synthesis: timing-vs-selection + raw-vs-neutral table + figure",
+      "deliverable": "src/identify/summarize_neutral.py",
+      "test": "tests/algo/test_summarize_neutral_smoke.py",
+      "rationale": "Paper-ready synthesis of the beta-vs-alpha decomposition and the raw-vs-neutral comparison.",
+      "acceptanceCriteria": [
+        "reads results/identify/neutral + results/identify/contrastive -> results/identify/neutral_summary.md + paper/sections/figures/market_neutral_summary.png",
+        "hermetic smoke green; real run executed + committed"
+      ],
+      "priority": 6, "passes": false, "notes": "Depends NB3, NB5."
+    }
+  ]
+}
