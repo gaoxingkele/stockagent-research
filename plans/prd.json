@@ -87,8 +87,8 @@
         "$0"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": "Depends K2, K3. Reuse src/train_tcn_wf.select_feature_columns for the factor set."
+      "passes": true,
+      "notes": "DONE+REAL (after fixing a _fwd_r5 leak in factor_cols that gave RankIC 0.825). FINDING: candle geometry is COMPLEMENTARY to smoothed factors -- pooled net long-short Sharpe factors 0.81 -> factors+candle 1.76 (incremental +0.95), RankIC 0.061 -> 0.083. candle-alone weak/negative net. ablation.json committed. Per-split SIGN-K1 verdict in K6."
     },
     {
       "id": "K6",

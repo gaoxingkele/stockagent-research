@@ -99,3 +99,5 @@ SIGN-K1: alpha ONLY if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe
   - **Next:** K4 learned sequence (XPU), K5 ablation, K6 verdict.
 - **K4 DONE+REAL** (XPU 328s): `src/onset/run_candle_seq.py` learned candle-geometry sequence (GRU, 3-seed ensemble). FINDING: pooled market-neutral RankIC **+0.062 [+0.036,+0.089]** (excludes 0, stronger than K3 flat +0.039); pooled NET long-short Sharpe 0.63, net mean CI [-0.0022,+0.0099] spans 0 -> not cost-surviving. Consistent with K3.
   - **Next:** K5 ablation, K6 verdict (LAST).
+- **K5 DONE+REAL** (caught+fixed a _fwd_r5 leak in factor_cols -> had given absurd RankIC 0.825). FINDING: candle geometry is COMPLEMENTARY to the 165 smoothed factors -- pooled net long-short Sharpe factors 0.81 -> factors+candle 1.76 (incremental **+0.95**), RankIC 0.061 -> 0.083. candle-alone net negative. Strongest positive signal in project, but pooled-only; per-split SIGN-K1 verdict in K6.
+  - **Next:** K6 synthesis + alpha1 verdict (LAST).
