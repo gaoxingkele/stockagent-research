@@ -57,8 +57,8 @@
         "$0 new LLM cost"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": "Depends NB1, NB2. SIGN-A1: report tradable long-short Sharpe, not only IC. SIGN-R1: shrinkage/null is a valid finding."
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: market-neutral selection contribution null (raw -0.004 [-0.064,+0.054], expert -0.031 [-0.089,+0.023]); timing weak positive but NOT significant (raw +0.085 [-0.055,+0.221]); baseline long-short Sharpe 0.59 (mean CI spans 0). stats.json committed. smoke green."
     },
     {
       "id": "NB4",
