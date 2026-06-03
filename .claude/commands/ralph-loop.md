@@ -20,7 +20,7 @@ You are running ONE iteration of an autonomous algorithm-implementation loop on 
 
 2. **Pick the next task**: the lowest-`priority` task with `passes: false` and `skip` not true, whose dependencies (see notes / progress.md dependency order) are already `passes: true`. If every non-skipped task is `passes: true`, go to step 7 (completion).
 
-3. **Set up branch** (first iteration only): ensure you are on branch `onset/algo-impl` (create from main if needed). Never commit to main.
+3. **Set up branch** (first iteration only): ensure you are on the branch named by `branchName` in `plans/prd.json` (create from main if needed). Never commit to main.
 
 4. **Implement** the task's `deliverable` and its `test`:
    - Reuse existing repo code per SIGN-007 (TCN encoder, expert rules, c3 bootstrap, eval_e3). Import, don't reimplement.

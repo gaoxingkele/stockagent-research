@@ -62,3 +62,9 @@ HEADLINE FINDINGS (all on leakage-free A-shares, identification HOLDS):
   - WS2: LLM-as-weak-supervisor HURTS (-0.149 [-0.298,-0.009]).
   - DB2: de-biased FinBen collapses to ~chance (ACL 0.440 / BigData 0.388 / CIKM 0.485); ~all headline US "skill" = memorization.
 Net: the first IDENTIFIED measurement says LLM reasoning adds ~nothing to A-share onset prediction, and the field s positive numbers are memorization.
+
+## NEW LINE (research/leakage-frontier) — leakage frontier + de-biasing methods
+Backlog reset to plans/prd.json (identify backlog archived -> plans/prd_identify_done.json, all 8 done).
+Goal: (1) leakage-freeness is a (model x market x period) property — China-trained LLMs may have memorized A-shares, flipping the validity test; (2) de-biasing estimator as standalone methods contribution. Branch research/leakage-frontier.
+Tasks: LF1 multi-model probe harness -> LF2 frontier aggregator; ID-SCALE ($0 full-anchor x horizon); DBX1 de-bias sensitivity -> DBX2 ($0 benchmark table); SYN2 synthesis. LF3 (paid multi-model real) skip:true until novelty + cost approved.
+PRECONDITION: novelty-check (a) model-relative LLM-finance memorization (b) cross-market de-biasing BEFORE paid work.

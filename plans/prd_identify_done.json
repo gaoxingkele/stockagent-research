@@ -1,0 +1,138 @@
+{
+  "repo": "gaoxingkele/stockagent-research",
+  "branchName": "onset/identify",
+  "goal": "Identify the CAUSAL contribution of LLM reasoning to stock-movement onset detection on a LEAKAGE-FREE substrate (2025 A-shares, where we proved the LLM's memory channel is null: no-context accuracy = 48.6% = chance). The field's 'LLM helps' results are unidentified (memory + reasoning confounded); on leakage-free data the contribution is identified. Deliverables: (1) a leakage-validity-gated identification estimator of LLM contribution, (2) LLM-as-weak-supervisor distillation with clean attribution, (3) a leakage-calibrated de-biasing estimator that corrects contaminated US-benchmark scores. The contribution is MEASUREMENT/IDENTIFICATION, not predictive performance.",
+  "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
+  "env": "Use .venv-xpu (Python 3.11 + torch-xpu). Reuse existing scored data so real experiments cost $0: results/poc_full/predictions.parquet (A-share LLM raw/expert scores + _fwd_r5 + ts_code/trade_date), results/e3_*/ (FinBen + A-share no-context), src/eval_e3 (add_lgbm), src/evaluation/onset_eval.py (clustered bootstrap), src/onset/{pu_labels,weak_supervision}.py, src/train_onset_real.py.",
+  "acceptanceCriteria": [
+    "verifyCommand (pytest tests/algo) passes",
+    "Method tasks ship a hermetic test (synthetic, <5s, CPU, no network) that fails before the deliverable exists",
+    "REAL-experiment tasks: the hermetic SMOKE test is green AND the real experiment has been run and its results/identify/<...>/stats.json committed; the numeric FINDING (including a null/zero estimate) is RECORDED, never gates completion (SIGN-R1)",
+    "Every identified estimate carries a date-clustered 95% CI and a stated leakage-validity check (SIGN-R3)",
+    "No new LLM API spend unless a task explicitly says so (SIGN-R2)"
+  ],
+  "tasks": [
+    {
+      "id": "ID1",
+      "title": "Leakage-validity test (the identification precondition)",
+      "deliverable": "src/identify/leakage_validity.py",
+      "test": "tests/algo/test_leakage_validity.py",
+      "rationale": "Identification requires the LLM memory channel ~ 0. Formalize the no-context-at-chance probe as a checkable precondition.",
+      "acceptanceCriteria": [
+        "leakage_validity(no_ctx_acc, no_ctx_ci, chance=0.5) returns {holds: bool, margin, reason}",
+        "holds=True iff the no-context accuracy CI does NOT lie above chance (memory channel null) -- A-share case",
+        "holds=False when no-context >> chance (US/contaminated case)",
+        "hermetic synthetic test for both cases"
+      ],
+      "priority": 1, "passes": true, "notes": "DONE: src/identify/leakage_validity.py (holds iff no-context CI lower bound <= chance). Verified on REAL data: A-share holds=True (margin -0.014), ACL18 holds=False (margin +0.233). 4 hermetic tests green."
+    },
+    {
+      "id": "ID2",
+      "title": "Identified LLM-contribution estimator",
+      "deliverable": "src/identify/contribution.py",
+      "test": "tests/algo/test_contribution.py",
+      "rationale": "On leakage-free data, the LLM's incremental predictive content beyond a tabular baseline is the identified reasoning contribution.",
+      "acceptanceCriteria": [
+        "incremental_contribution(baseline_score, llm_score, target, dates) returns the identified incremental rank-IC of the LLM beyond the baseline (e.g. rank-IC of LLM residualized on baseline, or combined-minus-baseline) with a date-clustered 95% CI (reuse onset_eval.clustered_bootstrap)",
+        "synthetic: when LLM carries signal beyond baseline -> estimate > 0; when LLM = baseline + noise -> CI spans 0",
+        "hermetic"
+      ],
+      "priority": 2, "passes": true, "notes": "DONE: src/identify/contribution.py — partial_rank_corr (LLM vs target controlling for baseline, on ranks) + incremental_contribution (date-clustered CI). 3 hermetic tests green (positive when LLM adds signal, CI spans 0 when redundant)."
+    },
+    {
+      "id": "ID3",
+      "title": "REAL: identified LLM contribution on leakage-free A-shares",
+      "deliverable": "src/identify/run_ashare_identify.py",
+      "test": "tests/algo/test_run_ashare_identify_smoke.py",
+      "rationale": "The first IDENTIFIED (not confounded) estimate of LLM value-add in stock onset prediction. Likely ~0 -- that is itself the key finding.",
+      "acceptanceCriteria": [
+        "uses results/poc_full/predictions.parquet (A-share LLM raw_p_up/expert_p_up + _fwd_r5) and the LGBM baseline (reuse src/agent/eval_hybrid.add_lgbm_predictions)",
+        "checks leakage_validity (ID1) using the A-share no-context result (results/e3_ashare/summary.json); records holds=True",
+        "writes results/identify/ashare/stats.json with leakage_validity + identified contribution (raw & expert) with clustered CI vs _fwd_r5",
+        "hermetic smoke test on synthetic is green; the real run is executed and stats.json committed; the finding (incl. null) recorded in progress.md",
+        "$0 new LLM cost"
+      ],
+      "priority": 3, "passes": true, "notes": "DONE + REAL RUN. FINDING: leakage holds; identified LLM contribution over LGBM = raw +0.033 CI[-0.037,+0.110], expert +0.006 CI[-0.062,+0.078] -> BOTH clean nulls (span 0). First identified estimate; consistent with weak-signal thesis. stats.json committed. smoke green."
+    },
+    {
+      "id": "WS1",
+      "title": "LLM -> labeling-function adapter",
+      "deliverable": "src/identify/llm_lf.py",
+      "test": "tests/algo/test_llm_lf.py",
+      "rationale": "Use the LLM as a weak supervisor (knowledge injector), not a predictor: turn its signals into labeling functions feeding the T-002 label model.",
+      "acceptanceCriteria": [
+        "llm_to_lf(df, thresholds) maps LLM signals (p_up, pump_ratio, expert onset_score) to votes in {-1,0,+1} (0=abstain)",
+        "output is a valid N x K LF matrix consumable by src/onset/weak_supervision.label_model",
+        "hermetic synthetic test; abstains handled"
+      ],
+      "priority": 4, "passes": true, "notes": "DONE: src/identify/llm_lf.py — llm_to_lf maps p_up/pump_ratio/onset_score to {-1,0,+1} LF votes feeding weak_supervision.label_model. 3 hermetic tests green."
+    },
+    {
+      "id": "WS2",
+      "title": "REAL: LLM-as-weak-supervisor distillation, clean attribution",
+      "deliverable": "src/identify/run_distill.py",
+      "test": "tests/algo/test_run_distill_smoke.py",
+      "rationale": "Does LLM KNOWLEDGE (not memory) improve a downstream onset detector? On leakage-free data the improvement is cleanly attributable.",
+      "acceptanceCriteria": [
+        "two arms: onset detector trained with fixed-horizon labels only vs labels augmented by LLM-derived weak supervision (WS1 + weak_supervision.label_model)",
+        "reuse the src/train_onset_real.py machinery; evaluate held-out with clustered RankIC (onset_eval)",
+        "writes results/identify/distill/stats.json with both arms + the identified improvement + clustered CIs",
+        "hermetic smoke green; real run executed + stats committed; improvement (incl. null) recorded",
+        "$0 new LLM cost"
+      ],
+      "priority": 5, "passes": true, "notes": "DONE + REAL. Engineering: LightGBM downstream (fast/deterministic) instead of TCN per SIGN-R1/002. FINDING (held-out split3 clustered RankIC): ArmA true-labels +0.109 [+0.037,+0.184]; ArmB +LLM-weak-refined -0.040 [-0.114,+0.028]; identified improvement -0.149 (LLM weak supervision HURTS; 79.8% labels refined). Clean attribution on leakage-free data. smoke green."
+    },
+    {
+      "id": "DB1",
+      "title": "Leakage-calibrated de-biasing estimator",
+      "deliverable": "src/identify/debias.py",
+      "test": "tests/algo/test_debias.py",
+      "rationale": "Context HURTS on memorized US data but can only help on clean A-shares; use the clean context-effect as a reference to subtract the memorization component from contaminated US scores. Exports value to the whole field.",
+      "acceptanceCriteria": [
+        "debias_accuracy(us_full, us_nocontext, clean_full, clean_nocontext, chance=0.5) returns a memorization-corrected 'reasoning' accuracy estimate for the contaminated market, with the stated calibration assumption",
+        "synthetic with a known memorization component -> estimator recovers the reasoning part",
+        "hermetic"
+      ],
+      "priority": 6, "passes": true, "notes": "DONE: src/identify/debias.py — debiased = us_full - (us_nocontext - chance); calibration_ok checks clean-market no-context ~ chance. Recovers reasoning-only acc in synthetic; ACL18-like -> debiased <0.5. 3 hermetic tests green."
+    },
+    {
+      "id": "DB2",
+      "title": "REAL: de-bias the FinBen US benchmark scores",
+      "deliverable": "src/identify/run_debias_finben.py",
+      "test": "tests/algo/test_run_debias_finben_smoke.py",
+      "rationale": "Apply the de-biasing estimator to the real FinBen results using the A-share calibration.",
+      "acceptanceCriteria": [
+        "reads results/e3_{acl,bigdata,cikm}/leakage_summary.json (full + no-context) and results/e3_ashare/summary.json (clean calibration)",
+        "writes results/identify/debias/finben_corrected.json with per-benchmark corrected reasoning estimates",
+        "hermetic smoke green; real run executed + output committed",
+        "$0 new LLM cost"
+      ],
+      "priority": 7, "passes": true, "notes": "DONE + REAL. FINDING: de-biased FinBen reasoning-only acc = ACL18 0.440, BigData22 0.388, CIKM18 0.485 (all <=chance after removing memorization excess 0.22-0.30); clean A-share reasoning ref +0.02; calibration valid. finben_corrected.json committed. smoke green."
+    },
+    {
+      "id": "SYN",
+      "title": "Synthesis: identification results table + figure",
+      "deliverable": "src/identify/summarize_identify.py",
+      "test": "tests/algo/test_summarize_identify_smoke.py",
+      "rationale": "Aggregate the identified A-share contribution (ID3), the distillation attribution (WS2), and the FinBen de-biasing (DB2) into one paper-ready table + figure.",
+      "acceptanceCriteria": [
+        "reads the three results/identify/* artifacts and writes results/identify/summary.md + paper/sections/figures/identify_summary.png",
+        "hermetic smoke green; real run executed + figure committed"
+      ],
+      "priority": 8, "passes": true, "notes": "DONE + REAL: src/identify/summarize_identify.py -> results/identify/summary.md + paper/sections/figures/identify_summary.png. Forest plot (all identified estimates ~0/negative) + FinBen de-bias bars. smoke green; full gate 43 passed."
+    },
+    {
+      "id": "CF",
+      "title": "(OPTIONAL) Counterfactual prompt-intervention attribution",
+      "deliverable": "src/identify/run_counterfactual.py",
+      "test": "tests/algo/test_run_counterfactual_smoke.py",
+      "rationale": "Perturb prompt components (drop factor / flip signal / anonymize) and measure the causal effect on the LLM prediction, validated against unmemorizable future returns. Direction 4.",
+      "acceptanceCriteria": [
+        "perturbation harness + attribution; validity only under leakage-free data",
+        "REQUIRES new A-share LLM scoring (cost) -> needs human approval"
+      ],
+      "priority": 9, "passes": false, "skip": true,
+      "skipReason": "Requires new LLM API calls (cost); needs human approval before the loop incurs spend. Flip skip:false to enable."
+    }
+  ]
+}
