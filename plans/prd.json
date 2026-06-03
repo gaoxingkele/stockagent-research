@@ -52,7 +52,7 @@
         "hermetic smoke test on synthetic is green; the real run is executed and stats.json committed; the finding (incl. null) recorded in progress.md",
         "$0 new LLM cost"
       ],
-      "priority": 3, "passes": false, "notes": "Depends ID1, ID2. SIGN-R1: do not gate on the estimate being nonzero."
+      "priority": 3, "passes": true, "notes": "DONE + REAL RUN. FINDING: leakage holds; identified LLM contribution over LGBM = raw +0.033 CI[-0.037,+0.110], expert +0.006 CI[-0.062,+0.078] -> BOTH clean nulls (span 0). First identified estimate; consistent with weak-signal thesis. stats.json committed. smoke green."
     },
     {
       "id": "WS1",
