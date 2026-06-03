@@ -82,3 +82,7 @@ SIGN-A1: report tradable long-short, shrinkage != failure.
   - **Next:** NB4 contrastive encoder -> NB5 contrastive vs raw (XPU); NB6 synthesis.
 - **NB5 DONE+REAL** (XPU 109s): `src/identify/run_contrastive.py` contrastive vs raw, two arms. FINDING: market-neutral RankIC null both (raw +0.016 [-0.016,+0.054], neutral -0.001 [-0.043,+0.049]); long-short Sharpe raw 2.18 / neutral 1.71 with mean CI excluding 0 -- but **single split3 (known-favorable quarter), RankIC null -> NOT alpha evidence**; multi-split/cost/seed validation required. NEUTRAL did not beat RAW (shrinkage, expected per SIGN-A1). stats committed.
   - **Next:** NB6 synthesis (LAST).
+- **NB6 DONE+REAL**: `src/identify/summarize_neutral.py` -> results/identify/neutral_summary.md + figure. full gate 54 passed.
+
+## COMPLETE (research/market-neutral-alpha)
+All 6 NB tasks pass. HEADLINE: even market/sector-neutral, the identified LLM idiosyncratic SELECTION contribution is null; TIMING shows a weak non-significant positive hint (LLM may aid beta-timing > alpha-selection, unconfirmed); contrastive/neutral target did NOT beat raw (shrinkage as expected). A long-short Sharpe ~1.7-2.2 appears on the single split3 window but RankIC is null and it is one favorable quarter -> NOT alpha evidence. Net: no significant idiosyncratic alpha; the only suggestive thread is LLM beta-timing, which needs multi-split confirmation.
