@@ -37,7 +37,7 @@
         "synthetic: when LLM carries signal beyond baseline -> estimate > 0; when LLM = baseline + noise -> CI spans 0",
         "hermetic"
       ],
-      "priority": 2, "passes": false, "notes": "Reuse src/evaluation/onset_eval.py clustered_bootstrap."
+      "priority": 2, "passes": true, "notes": "DONE: src/identify/contribution.py — partial_rank_corr (LLM vs target controlling for baseline, on ranks) + incremental_contribution (date-clustered CI). 3 hermetic tests green (positive when LLM adds signal, CI spans 0 when redundant)."
     },
     {
       "id": "ID3",

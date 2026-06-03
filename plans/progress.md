@@ -44,3 +44,4 @@ Key reusable $0 data: results/poc_full (A-share LLM scores+_fwd_r5), results/e3_
 Gate: pytest tests/algo. SIGN-R1: real experiments gate on machinery, null findings are valid.
 - **ID1 DONE** (branch onset/identify): `src/identify/leakage_validity.py` — holds iff no-context CI lower bound <= chance. Verified on REAL data: A-share holds=True (acc .486, margin -.014), ACL18 holds=False (acc .733, margin +.233). 4 hermetic tests green. This is the identification precondition ID3 depends on.
   - **Next:** ID2 (contribution estimator), then ID3 (real A-share identification). WS1/DB1 independent.
+- **ID2 DONE**: `src/identify/contribution.py` — partial rank corr (LLM vs target | baseline) + clustered-CI bootstrap. 3 hermetic tests green.
