@@ -31,6 +31,9 @@ checkpoints/*
 !checkpoints/.gitkeep
 results/*
 !results/.gitkeep
+# identification-line findings are small JSON results -> keep them in VCS
+!results/identify/
+!results/identify/**
 experiments/runs/*
 !experiments/runs/.gitkeep
 

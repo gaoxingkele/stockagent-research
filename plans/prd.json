@@ -24,7 +24,7 @@
         "holds=False when no-context >> chance (US/contaminated case)",
         "hermetic synthetic test for both cases"
       ],
-      "priority": 1, "passes": false, "notes": "A-share no-context = 0.486 CI [0.454,0.517] -> holds. FinBen 0.72-0.80 -> fails."
+      "priority": 1, "passes": true, "notes": "DONE: src/identify/leakage_validity.py (holds iff no-context CI lower bound <= chance). Verified on REAL data: A-share holds=True (margin -0.014), ACL18 holds=False (margin +0.233). 4 hermetic tests green."
     },
     {
       "id": "ID2",
@@ -37,7 +37,7 @@
         "synthetic: when LLM carries signal beyond baseline -> estimate > 0; when LLM = baseline + noise -> CI spans 0",
         "hermetic"
       ],
-      "priority": 2, "passes": false, "notes": "Reuse src/evaluation/onset_eval.py clustered_bootstrap."
+      "priority": 2, "passes": true, "notes": "DONE: src/identify/contribution.py — partial_rank_corr (LLM vs target controlling for baseline, on ranks) + incremental_contribution (date-clustered CI). 3 hermetic tests green (positive when LLM adds signal, CI spans 0 when redundant)."
     },
     {
       "id": "ID3",
@@ -52,7 +52,7 @@
         "hermetic smoke test on synthetic is green; the real run is executed and stats.json committed; the finding (incl. null) recorded in progress.md",
         "$0 new LLM cost"
       ],
-      "priority": 3, "passes": false, "notes": "Depends ID1, ID2. SIGN-R1: do not gate on the estimate being nonzero."
+      "priority": 3, "passes": true, "notes": "DONE + REAL RUN. FINDING: leakage holds; identified LLM contribution over LGBM = raw +0.033 CI[-0.037,+0.110], expert +0.006 CI[-0.062,+0.078] -> BOTH clean nulls (span 0). First identified estimate; consistent with weak-signal thesis. stats.json committed. smoke green."
     },
     {
       "id": "WS1",
@@ -65,7 +65,7 @@
         "output is a valid N x K LF matrix consumable by src/onset/weak_supervision.label_model",
         "hermetic synthetic test; abstains handled"
       ],
-      "priority": 4, "passes": false, "notes": "Reuse src/onset/weak_supervision.py."
+      "priority": 4, "passes": true, "notes": "DONE: src/identify/llm_lf.py — llm_to_lf maps p_up/pump_ratio/onset_score to {-1,0,+1} LF votes feeding weak_supervision.label_model. 3 hermetic tests green."
     },
     {
       "id": "WS2",
@@ -80,7 +80,7 @@
         "hermetic smoke green; real run executed + stats committed; improvement (incl. null) recorded",
         "$0 new LLM cost"
       ],
-      "priority": 5, "passes": false, "notes": "Depends WS1, ID1. Keep modest (XPU, few minutes)."
+      "priority": 5, "passes": true, "notes": "DONE + REAL. Engineering: LightGBM downstream (fast/deterministic) instead of TCN per SIGN-R1/002. FINDING (held-out split3 clustered RankIC): ArmA true-labels +0.109 [+0.037,+0.184]; ArmB +LLM-weak-refined -0.040 [-0.114,+0.028]; identified improvement -0.149 (LLM weak supervision HURTS; 79.8% labels refined). Clean attribution on leakage-free data. smoke green."
     },
     {
       "id": "DB1",
@@ -93,7 +93,7 @@
         "synthetic with a known memorization component -> estimator recovers the reasoning part",
         "hermetic"
       ],
-      "priority": 6, "passes": false, "notes": "State the comparability assumption explicitly in the docstring."
+      "priority": 6, "passes": true, "notes": "DONE: src/identify/debias.py — debiased = us_full - (us_nocontext - chance); calibration_ok checks clean-market no-context ~ chance. Recovers reasoning-only acc in synthetic; ACL18-like -> debiased <0.5. 3 hermetic tests green."
     },
     {
       "id": "DB2",
@@ -107,7 +107,7 @@
         "hermetic smoke green; real run executed + output committed",
         "$0 new LLM cost"
       ],
-      "priority": 7, "passes": false, "notes": "Depends DB1."
+      "priority": 7, "passes": true, "notes": "DONE + REAL. FINDING: de-biased FinBen reasoning-only acc = ACL18 0.440, BigData22 0.388, CIKM18 0.485 (all <=chance after removing memorization excess 0.22-0.30); clean A-share reasoning ref +0.02; calibration valid. finben_corrected.json committed. smoke green."
     },
     {
       "id": "SYN",
@@ -119,7 +119,7 @@
         "reads the three results/identify/* artifacts and writes results/identify/summary.md + paper/sections/figures/identify_summary.png",
         "hermetic smoke green; real run executed + figure committed"
       ],
-      "priority": 8, "passes": false, "notes": "Depends ID3, WS2, DB2. LAST task."
+      "priority": 8, "passes": true, "notes": "DONE + REAL: src/identify/summarize_identify.py -> results/identify/summary.md + paper/sections/figures/identify_summary.png. Forest plot (all identified estimates ~0/negative) + FinBen de-bias bars. smoke green; full gate 43 passed."
     },
     {
       "id": "CF",

@@ -1,0 +1,28 @@
+{
+  "clean_market": "A-shares",
+  "clean_full": 0.506,
+  "clean_nocontext": 0.48565573770491804,
+  "corrected": {
+    "acl": {
+      "debiased": 0.4395287035346821,
+      "memorization_excess": 0.23252536640360766,
+      "reasoning_ref_clean_market": 0.02034426229508196,
+      "calibration_ok": true,
+      "note": "valid: clean-market no-context ~ chance"
+    },
+    "bigdata": {
+      "debiased": 0.38778204857085463,
+      "memorization_excess": 0.21852899575671858,
+      "reasoning_ref_clean_market": 0.02034426229508196,
+      "calibration_ok": true,
+      "note": "valid: clean-market no-context ~ chance"
+    },
+    "cikm": {
+      "debiased": 0.48527455823674703,
+      "memorization_excess": 0.3026315789473685,
+      "reasoning_ref_clean_market": 0.02034426229508196,
+      "calibration_ok": true,
+      "note": "valid: clean-market no-context ~ chance"
+    }
+  }
+}

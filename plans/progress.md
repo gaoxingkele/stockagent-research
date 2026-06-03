@@ -42,3 +42,23 @@ Goal: first IDENTIFIED estimate of LLM reasoning contribution on leakage-free A-
 Dependency order: ID1->ID2->ID3 ; WS1->WS2 ; DB1->DB2 ; SYN last. CF is skip (needs paid LLM).
 Key reusable $0 data: results/poc_full (A-share LLM scores+_fwd_r5), results/e3_* (FinBen+A-share no-context), src/evaluation/onset_eval.py, src/onset/*, src/train_onset_real.py.
 Gate: pytest tests/algo. SIGN-R1: real experiments gate on machinery, null findings are valid.
+- **ID1 DONE** (branch onset/identify): `src/identify/leakage_validity.py` — holds iff no-context CI lower bound <= chance. Verified on REAL data: A-share holds=True (acc .486, margin -.014), ACL18 holds=False (acc .733, margin +.233). 4 hermetic tests green. This is the identification precondition ID3 depends on.
+  - **Next:** ID2 (contribution estimator), then ID3 (real A-share identification). WS1/DB1 independent.
+- **ID2 DONE**: `src/identify/contribution.py` — partial rank corr (LLM vs target | baseline) + clustered-CI bootstrap. 3 hermetic tests green.
+- **ID3 DONE + REAL**: `src/identify/run_ashare_identify.py`. FINDING (leakage-free A-shares, n=1000, 212 dates, identification HOLDS): identified LLM contribution over LGBM = raw **+0.033** clustered CI [-0.037,+0.110], expert **+0.006** CI [-0.062,+0.078] -> **both clean nulls (span 0)**. The first IDENTIFIED estimate of LLM reasoning value-add; ~0, consistent with the weak-signal thesis. stats.json committed under results/identify/ashare. smoke green.
+  - **Next:** WS1->WS2 (distillation), DB1->DB2 (de-bias). SYN last.
+- **WS1 DONE**: `src/identify/llm_lf.py` — LLM signals -> labeling functions feeding weak_supervision. 3 tests green.
+- **DB1 DONE**: `src/identify/debias.py` — recall-corrected accuracy = us_full-(us_nocontext-chance), calibrated on clean market. 3 tests green.
+- **DB2 DONE + REAL**: `src/identify/run_debias_finben.py`. FINDING: after removing the memorization excess, FinBen reasoning-only accuracy = ACL18 **0.440**, BigData22 **0.388**, CIKM18 **0.485** -> all at/below chance; clean-market reasoning ref only +0.02. The headline 60-80% LLM "skill" is essentially all memorization. results/identify/debias/finben_corrected.json committed.
+  - **Next:** WS2 (distillation, real XPU), then SYN.
+- **WS2 DONE + REAL**: `src/identify/run_distill.py` (LightGBM downstream, two arms). FINDING (held-out split3 clustered RankIC): ArmA true-labels **+0.109** [+0.037,+0.184]; ArmB +LLM-weak-refined **-0.040** [-0.114,+0.028]; identified improvement **-0.149** -> LLM-as-weak-supervisor HURTS (79.8% labels overwritten). Clean attribution under leakage-freeness; consistent with ID3 (~0 contribution). smoke green.
+  - **Next:** SYN (synthesis: ID3+WS2+DB2 -> table+figure). LAST.
+- **SYN DONE + REAL**: `src/identify/summarize_identify.py` -> results/identify/summary.md + paper/sections/figures/identify_summary.png. WS2 improvement CI [-0.298,-0.009] excludes 0 (LLM weak supervision significantly HURTS).
+
+## COMPLETE (onset/identify)
+All 8 tasks pass (CF skipped, needs paid LLM). Full gate pytest tests/algo = 43 passed.
+HEADLINE FINDINGS (all on leakage-free A-shares, identification HOLDS):
+  - ID3: identified LLM contribution over LGBM ~ 0 (raw +0.033 [-0.037,+0.110], expert +0.006 [-0.062,+0.078]).
+  - WS2: LLM-as-weak-supervisor HURTS (-0.149 [-0.298,-0.009]).
+  - DB2: de-biased FinBen collapses to ~chance (ACL 0.440 / BigData 0.388 / CIKM 0.485); ~all headline US "skill" = memorization.
+Net: the first IDENTIFIED measurement says LLM reasoning adds ~nothing to A-share onset prediction, and the field s positive numbers are memorization.

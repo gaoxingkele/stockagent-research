@@ -1,0 +1,27 @@
+{
+  "leakage_validity": {
+    "holds": true,
+    "margin": -0.014344262295081955,
+    "reason": "no-context CI lower bound 0.454 <= chance 0.50: cannot reject 'no memorization signal' -> identification holds"
+  },
+  "n": 1000,
+  "identified": "yes",
+  "contribution": {
+    "raw": {
+      "mean": 0.0327842909457639,
+      "point": 0.03230941256325649,
+      "lo": -0.03740785228301424,
+      "hi": 0.10979750205867325,
+      "n": 1000,
+      "n_dates": 212
+    },
+    "expert": {
+      "mean": 0.00617837095219967,
+      "point": 0.004803966475135256,
+      "lo": -0.061771523187397655,
+      "hi": 0.07839692730147603,
+      "n": 1000,
+      "n_dates": 212
+    }
+  }
+}
