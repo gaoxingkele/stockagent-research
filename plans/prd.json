@@ -88,8 +88,8 @@
         "$0 new LLM cost (compute only)"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": "Depends NB1, NB4. Honest expectation: idiosyncratic signal is SMALLER but more regime-stable; shrinkage is not failure (SIGN-A1/R1)."
+      "passes": true,
+      "notes": "DONE+REAL(XPU,109s). FINDING: market-neutral RankIC null both arms (raw +0.016 [-0.016,+0.054], neutral -0.001). Long-short Sharpe raw 2.18 / neutral 1.71 with mean CI excluding 0 -- BUT single split3 60-date window (known favorable quarter), RankIC null -> NOT alpha evidence; needs multi-split/cost/seed validation. NEUTRAL did NOT beat RAW (shrinkage, as expected). smoke green."
     },
     {
       "id": "NB6",
