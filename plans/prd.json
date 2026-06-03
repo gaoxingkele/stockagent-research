@@ -65,7 +65,7 @@
         "output is a valid N x K LF matrix consumable by src/onset/weak_supervision.label_model",
         "hermetic synthetic test; abstains handled"
       ],
-      "priority": 4, "passes": false, "notes": "Reuse src/onset/weak_supervision.py."
+      "priority": 4, "passes": true, "notes": "DONE: src/identify/llm_lf.py — llm_to_lf maps p_up/pump_ratio/onset_score to {-1,0,+1} LF votes feeding weak_supervision.label_model. 3 hermetic tests green."
     },
     {
       "id": "WS2",
@@ -93,7 +93,7 @@
         "synthetic with a known memorization component -> estimator recovers the reasoning part",
         "hermetic"
       ],
-      "priority": 6, "passes": false, "notes": "State the comparability assumption explicitly in the docstring."
+      "priority": 6, "passes": true, "notes": "DONE: src/identify/debias.py — debiased = us_full - (us_nocontext - chance); calibration_ok checks clean-market no-context ~ chance. Recovers reasoning-only acc in synthetic; ACL18-like -> debiased <0.5. 3 hermetic tests green."
     },
     {
       "id": "DB2",

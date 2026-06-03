@@ -47,3 +47,5 @@ Gate: pytest tests/algo. SIGN-R1: real experiments gate on machinery, null findi
 - **ID2 DONE**: `src/identify/contribution.py` — partial rank corr (LLM vs target | baseline) + clustered-CI bootstrap. 3 hermetic tests green.
 - **ID3 DONE + REAL**: `src/identify/run_ashare_identify.py`. FINDING (leakage-free A-shares, n=1000, 212 dates, identification HOLDS): identified LLM contribution over LGBM = raw **+0.033** clustered CI [-0.037,+0.110], expert **+0.006** CI [-0.062,+0.078] -> **both clean nulls (span 0)**. The first IDENTIFIED estimate of LLM reasoning value-add; ~0, consistent with the weak-signal thesis. stats.json committed under results/identify/ashare. smoke green.
   - **Next:** WS1->WS2 (distillation), DB1->DB2 (de-bias). SYN last.
+- **WS1 DONE**: `src/identify/llm_lf.py` — LLM signals -> labeling functions feeding weak_supervision. 3 tests green.
+- **DB1 DONE**: `src/identify/debias.py` — recall-corrected accuracy = us_full-(us_nocontext-chance), calibrated on clean market. 3 tests green.
