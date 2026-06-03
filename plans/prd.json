@@ -107,7 +107,7 @@
         "hermetic smoke green; real run executed + output committed",
         "$0 new LLM cost"
       ],
-      "priority": 7, "passes": false, "notes": "Depends DB1."
+      "priority": 7, "passes": true, "notes": "DONE + REAL. FINDING: de-biased FinBen reasoning-only acc = ACL18 0.440, BigData22 0.388, CIKM18 0.485 (all <=chance after removing memorization excess 0.22-0.30); clean A-share reasoning ref +0.02; calibration valid. finben_corrected.json committed. smoke green."
     },
     {
       "id": "SYN",

@@ -49,3 +49,5 @@ Gate: pytest tests/algo. SIGN-R1: real experiments gate on machinery, null findi
   - **Next:** WS1->WS2 (distillation), DB1->DB2 (de-bias). SYN last.
 - **WS1 DONE**: `src/identify/llm_lf.py` — LLM signals -> labeling functions feeding weak_supervision. 3 tests green.
 - **DB1 DONE**: `src/identify/debias.py` — recall-corrected accuracy = us_full-(us_nocontext-chance), calibrated on clean market. 3 tests green.
+- **DB2 DONE + REAL**: `src/identify/run_debias_finben.py`. FINDING: after removing the memorization excess, FinBen reasoning-only accuracy = ACL18 **0.440**, BigData22 **0.388**, CIKM18 **0.485** -> all at/below chance; clean-market reasoning ref only +0.02. The headline 60-80% LLM "skill" is essentially all memorization. results/identify/debias/finben_corrected.json committed.
+  - **Next:** WS2 (distillation, real XPU), then SYN.
