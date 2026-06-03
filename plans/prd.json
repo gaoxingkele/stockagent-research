@@ -72,8 +72,8 @@
         "hermetic test"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Reuse patterns from src/models/onset_intensity.py / TinyEncoder. Method not novel; the value is the clean target + identification."
+      "passes": true,
+      "notes": "DONE: src/identify/contrastive_encoder.py (stock+reference seq -> spread embedding -> head predicts neutral target). 2 CPU tests green."
     },
     {
       "id": "NB5",

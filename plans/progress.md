@@ -86,3 +86,4 @@ SIGN-A1: report tradable long-short, shrinkage != failure.
 
 ## COMPLETE (research/market-neutral-alpha)
 All 6 NB tasks pass. HEADLINE: even market/sector-neutral, the identified LLM idiosyncratic SELECTION contribution is null; TIMING shows a weak non-significant positive hint (LLM may aid beta-timing > alpha-selection, unconfirmed); contrastive/neutral target did NOT beat raw (shrinkage as expected). A long-short Sharpe ~1.7-2.2 appears on the single split3 window but RankIC is null and it is one favorable quarter -> NOT alpha evidence. Net: no significant idiosyncratic alpha; the only suggestive thread is LLM beta-timing, which needs multi-split confirmation.
+- **NB4 DONE** (commit was deferred): `src/identify/contrastive_encoder.py` -- ContrastiveEncoder (stock + reference seq -> spread -> neutral-target head). 2 CPU tests green.
