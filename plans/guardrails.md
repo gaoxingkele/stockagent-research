@@ -61,3 +61,8 @@ Learned constraints read at the start of every Ralph iteration. Progress persist
 **Trigger:** market-neutral / beta-decomposition tasks (NB-line).
 **Instruction:** Report the tradable market-neutral long-short return and its Sharpe (date-clustered/block bootstrap), not only RankIC. Market/sector neutralization REMOVES the beta component, so the idiosyncratic signal is EXPECTED to be smaller than raw -- a smaller-but-stable idiosyncratic signal is the goal, and a clean null is a valid finding. Never treat shrinkage vs raw as a failure or gate on it.
 **Reason:** Alpha = small, stable, leverable idiosyncratic predictability, not large beta-driven raw predictability. The honest measurement is the deliverable.
+
+### SIGN-K1: Alpha verdict requires multi-split + net-of-cost; never trust a single split
+**Trigger:** candlestick-onset REAL tasks (K-line) and any "did we find alpha" claim.
+**Instruction:** Declare a REAL edge (alpha1) ONLY if the POOLED market-neutral long-short Sharpe, NET of 0.2% round-trip cost, has a clustered 95% CI excluding 0 AND the net Sharpe is positive in >= 2 of 3 walk-forward splits. A signal that only appears on one split (e.g. the NB5 split3 Sharpe 2.18 with null RankIC) is labelled 'single-split / overfit', NOT alpha. Always report GROSS and NET; report per-split AND pooled.
+**Reason:** Candlestick backtests are the canonical data-snooping trap, and we already produced one single-split mirage (NB5). Multi-split + net-of-cost + pooled-CI is the bar that separates a real small edge from self-deception.

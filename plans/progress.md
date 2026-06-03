@@ -87,3 +87,8 @@ SIGN-A1: report tradable long-short, shrinkage != failure.
 ## COMPLETE (research/market-neutral-alpha)
 All 6 NB tasks pass. HEADLINE: even market/sector-neutral, the identified LLM idiosyncratic SELECTION contribution is null; TIMING shows a weak non-significant positive hint (LLM may aid beta-timing > alpha-selection, unconfirmed); contrastive/neutral target did NOT beat raw (shrinkage as expected). A long-short Sharpe ~1.7-2.2 appears on the single split3 window but RankIC is null and it is one favorable quarter -> NOT alpha evidence. Net: no significant idiosyncratic alpha; the only suggestive thread is LLM beta-timing, which needs multi-split confirmation.
 - **NB4 DONE** (commit was deferred): `src/identify/contrastive_encoder.py` -- ContrastiveEncoder (stock + reference seq -> spread -> neutral-target head). 2 CPU tests green.
+
+## NEW LINE (research/candlestick-onset) -- alpha1 hunt via candle geometry + relative position
+User idea: recent 1-3 candlesticks RELATIVE to prior 3-9 bars = dynamic 3-12 bar onset. Scale/vol/regime-invariant (fixes non-stationarity); A-shares = inefficient market where candlestick edge can survive; matches V12.31 rules. Method NOT novel; contribution = HONEST multi-split, cost-aware, market-neutral test.
+Tasks: K1 candle geometry + relative-position features -> K2 dynamic 3-12 bar assembler (flat + sequence); K3 REAL$0 LGBM all-split market-neutral cost-aware; K4 REAL XPU learned sequence (multi-seed); K5 ablation vs smoothed factors; K6 synthesis + alpha verdict.
+SIGN-K1: alpha ONLY if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe>0 in >=2/3 splits -- fixes the NB5 single-split mirage. Prior market-neutral line merged + archived to prd_market_neutral_done.json.
