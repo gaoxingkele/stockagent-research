@@ -56,8 +56,8 @@
         "$0"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": "Depends K1,K2. SIGN-K1: alpha only if pooled NET long-short Sharpe CI excludes 0 AND positive in >=2/3 splits."
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: candle features give pooled market-neutral RankIC +0.039 [+0.016,+0.065] (EXCLUDES 0 -- strongest cross-sectional signal yet). But tradable: pooled NET long-short Sharpe 0.54, net mean CI [-0.003,+0.009] spans 0; split3 net negative. SIGN-K1: net>0 in 2/3 splits but pooled net CI spans 0 -> NOT alpha1 (small real signal, not cost-surviving/regime-stable). lgbm.json committed."
     },
     {
       "id": "K4",

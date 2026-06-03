@@ -34,6 +34,8 @@ results/*
 # identification-line findings are small JSON results -> keep them in VCS
 !results/identify/
 !results/identify/**
+!results/candle/
+!results/candle/**
 experiments/runs/*
 !experiments/runs/.gitkeep
 
