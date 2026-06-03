@@ -77,3 +77,4 @@ Goal: target market/sector-NEUTRAL returns (idiosyncratic = where alpha lives), 
 Tasks: NB1 neutral targets -> NB2 decomposition identifier -> NB3 REAL$0 (selection/timing + long-short Sharpe); NB4 contrastive encoder -> NB5 REAL XPU (contrastive vs raw, market-neutral eval); NB6 synthesis. No paid tasks.
 SIGN-A1: report tradable long-short, shrinkage != failure.
 - **NB1 DONE** (branch research/market-neutral-alpha): `src/identify/neutral_targets.py` -- market/sector neutral residuals (per-date / per-date-industry demean) + systematic components. 3 hermetic tests green.
+- **NB2 DONE**: `src/identify/decompose_identify.py` -- selection_contribution (idiosyncratic, reuses ID2) + timing_contribution (date-level LLM aggregate vs systematic move, block bootstrap). 2 hermetic tests green.

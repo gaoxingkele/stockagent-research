@@ -40,8 +40,8 @@
         "hermetic synthetic: selection>0 when LLM carries idiosyncratic signal; timing>0 when LLM aggregate predicts the market move; both ~0 / CI spans 0 otherwise"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "Reuse src/identify/contribution.py + onset_eval. Timing has few dates -> wide CI; report honestly."
+      "passes": true,
+      "notes": "DONE: src/identify/decompose_identify.py (selection_contribution reuses ID2; timing_contribution = date-level rank corr of LLM aggregate vs systematic, block bootstrap). 2 hermetic tests green."
     },
     {
       "id": "NB3",
