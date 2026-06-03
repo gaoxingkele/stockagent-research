@@ -1,0 +1,18 @@
+{
+  "n_train": 2797,
+  "n_test": 1348,
+  "n_features": 165,
+  "frac_labels_refined_by_llm": 0.797640328923847,
+  "arm_A_true_labels": {
+    "mean": 0.10934571824909005,
+    "lo": 0.03691710164102625,
+    "hi": 0.18433771015458592
+  },
+  "arm_B_llm_weak_refined": {
+    "mean": -0.039513141935414435,
+    "lo": -0.11397106764744412,
+    "hi": 0.028298518167299946
+  },
+  "identified_improvement": -0.14885886018450448,
+  "note": "leakage-free (A-share, ID1 holds); improvement is clean LLM-knowledge attribution"
+}

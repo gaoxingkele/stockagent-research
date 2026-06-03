@@ -80,7 +80,7 @@
         "hermetic smoke green; real run executed + stats committed; improvement (incl. null) recorded",
         "$0 new LLM cost"
       ],
-      "priority": 5, "passes": false, "notes": "Depends WS1, ID1. Keep modest (XPU, few minutes)."
+      "priority": 5, "passes": true, "notes": "DONE + REAL. Engineering: LightGBM downstream (fast/deterministic) instead of TCN per SIGN-R1/002. FINDING (held-out split3 clustered RankIC): ArmA true-labels +0.109 [+0.037,+0.184]; ArmB +LLM-weak-refined -0.040 [-0.114,+0.028]; identified improvement -0.149 (LLM weak supervision HURTS; 79.8% labels refined). Clean attribution on leakage-free data. smoke green."
     },
     {
       "id": "DB1",
