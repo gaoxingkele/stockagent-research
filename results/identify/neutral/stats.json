@@ -1,0 +1,67 @@
+{
+  "leakage_validity": {
+    "holds": true,
+    "margin": -0.014344262295081955,
+    "reason": "no-context CI lower bound 0.454 <= chance 0.50: cannot reject 'no memorization signal' -> identification holds"
+  },
+  "identified": "yes",
+  "n": 1000,
+  "selection": {
+    "market_neutral": {
+      "raw": {
+        "mean": -0.004086109778829603,
+        "point": -0.004614121461802013,
+        "lo": -0.06366950068302792,
+        "hi": 0.05442261353739917,
+        "n": 1000,
+        "n_dates": 212
+      },
+      "expert": {
+        "mean": -0.03123334010288659,
+        "point": -0.03193218488141527,
+        "lo": -0.0886862661212525,
+        "hi": 0.02299633761214634,
+        "n": 1000,
+        "n_dates": 212
+      }
+    }
+  },
+  "timing": {
+    "market_neutral": {
+      "raw": {
+        "mean": 0.083695182500463,
+        "point": 0.08505413617274543,
+        "lo": -0.05549325718356551,
+        "hi": 0.22055373978704856,
+        "n_dates": 212
+      },
+      "expert": {
+        "mean": 0.02694899036204839,
+        "point": 0.026688357533163082,
+        "lo": -0.11074021845320331,
+        "hi": 0.1651780579914232,
+        "n_dates": 212
+      }
+    }
+  },
+  "long_short": {
+    "baseline": {
+      "ls_mean_per_period": 0.008190173432838016,
+      "annualized_sharpe": 0.5908174496012104,
+      "n_dates": 100,
+      "ls_mean_ci95": [
+        -0.01058472804951843,
+        0.027596003289289774
+      ]
+    },
+    "llm_raw": {
+      "ls_mean_per_period": 0.005437226215000122,
+      "annualized_sharpe": 0.36290137434162634,
+      "n_dates": 100,
+      "ls_mean_ci95": [
+        -0.01466362295372326,
+        0.02570854031142115
+      ]
+    }
+  }
+}

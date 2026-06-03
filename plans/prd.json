@@ -24,7 +24,9 @@
         "systematic components also returned: per-date mean (market timing target) and per-date-per-industry mean (sector timing target)",
         "hermetic synthetic test: neutral residuals sum ~0 within each date/group; raw = systematic + idiosyncratic"
       ],
-      "priority": 1, "passes": false, "notes": "No external index needed; cross-sectional demean per date = market neutralization."
+      "priority": 1,
+      "passes": true,
+      "notes": "DONE: src/identify/neutral_targets.py (market_neutral per-date demean, sector_neutral per-date-industry demean, decompose). 3 hermetic tests green."
     },
     {
       "id": "NB2",
@@ -37,7 +39,9 @@
         "timing_contribution(llm, systematic_by_date, dates) aggregates the LLM signal per date and correlates with the per-date systematic return (date-level, block/clustered CI); reports n_dates honestly",
         "hermetic synthetic: selection>0 when LLM carries idiosyncratic signal; timing>0 when LLM aggregate predicts the market move; both ~0 / CI spans 0 otherwise"
       ],
-      "priority": 2, "passes": false, "notes": "Reuse src/identify/contribution.py + onset_eval. Timing has few dates -> wide CI; report honestly."
+      "priority": 2,
+      "passes": true,
+      "notes": "DONE: src/identify/decompose_identify.py (selection_contribution reuses ID2; timing_contribution = date-level rank corr of LLM aggregate vs systematic, block bootstrap). 2 hermetic tests green."
     },
     {
       "id": "NB3",
@@ -52,7 +56,9 @@
         "writes results/identify/neutral/stats.json; hermetic smoke green; real run executed + committed; finding (incl. null/shrinkage) recorded in progress.md",
         "$0 new LLM cost"
       ],
-      "priority": 3, "passes": false, "notes": "Depends NB1, NB2. SIGN-A1: report tradable long-short Sharpe, not only IC. SIGN-R1: shrinkage/null is a valid finding."
+      "priority": 3,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: market-neutral selection contribution null (raw -0.004 [-0.064,+0.054], expert -0.031 [-0.089,+0.023]); timing weak positive but NOT significant (raw +0.085 [-0.055,+0.221]); baseline long-short Sharpe 0.59 (mean CI spans 0). stats.json committed. smoke green."
     },
     {
       "id": "NB4",
@@ -65,7 +71,9 @@
         "runs on CPU; loss finite and decreases over a few steps on synthetic where the idiosyncratic target is learnable from the spread",
         "hermetic test"
       ],
-      "priority": 4, "passes": false, "notes": "Reuse patterns from src/models/onset_intensity.py / TinyEncoder. Method not novel; the value is the clean target + identification."
+      "priority": 4,
+      "passes": true,
+      "notes": "DONE: src/identify/contrastive_encoder.py (stock+reference seq -> spread embedding -> head predicts neutral target). 2 CPU tests green."
     },
     {
       "id": "NB5",
@@ -79,7 +87,9 @@
         "writes results/identify/contrastive/stats.json; hermetic smoke <30s green; real run executed + committed; finding recorded",
         "$0 new LLM cost (compute only)"
       ],
-      "priority": 5, "passes": false, "notes": "Depends NB1, NB4. Honest expectation: idiosyncratic signal is SMALLER but more regime-stable; shrinkage is not failure (SIGN-A1/R1)."
+      "priority": 5,
+      "passes": true,
+      "notes": "DONE+REAL(XPU,109s). FINDING: market-neutral RankIC null both arms (raw +0.016 [-0.016,+0.054], neutral -0.001). Long-short Sharpe raw 2.18 / neutral 1.71 with mean CI excluding 0 -- BUT single split3 60-date window (known favorable quarter), RankIC null -> NOT alpha evidence; needs multi-split/cost/seed validation. NEUTRAL did NOT beat RAW (shrinkage, as expected). smoke green."
     },
     {
       "id": "NB6",
@@ -91,7 +101,9 @@
         "reads results/identify/neutral + results/identify/contrastive -> results/identify/neutral_summary.md + paper/sections/figures/market_neutral_summary.png",
         "hermetic smoke green; real run executed + committed"
       ],
-      "priority": 6, "passes": false, "notes": "Depends NB3, NB5."
+      "priority": 6,
+      "passes": true,
+      "notes": "DONE+REAL: src/identify/summarize_neutral.py -> results/identify/neutral_summary.md + paper/sections/figures/market_neutral_summary.png. full gate 54 passed."
     }
   ]
 }
