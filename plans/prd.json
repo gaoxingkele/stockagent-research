@@ -1,107 +1,110 @@
 {
   "repo": "gaoxingkele/stockagent-research",
-  "branchName": "research/deployability",
-  "goal": "Deployability gauntlet for the only signal that cleared our honest statistical bar -- factors+candle (pooled net long-short Sharpe 1.76, positive in 3/3 splits, SIGN-K1 REAL). Decide whether it survives REAL A-share trading constraints or collapses to an in-sample artifact, by forcing it through three gates: (1) LONG-ONLY top-K market-excess, because A-shares mostly cannot be shorted, so the long-short is not directly tradable; (2) a REALISTIC A-share cost/constraint model (asymmetric stamp duty, commission, slippage, T+1, 10% price limits / un-enterable limit-up bars); (3) cross-period robustness (build 2023/2024 walk-forward windows from D1, liquidity haircut, top-K sensitivity) + a capacity estimate. HONEST EXPECTATION: long-only likely WEAKER (A-share short side often carries more signal via retail overreaction); this is a genuine go/no-go, not a victory lap. $0 (reuse D1 + candle/factor code).",
+  "branchName": "research/production-edge",
+  "goal": "Test the RIGHT object: V12.31's edge (real alpha +2.236pp/month, Sharpe 2.20) is NOT the broad cross-sectional onset signal (we tested that, null) but the parts the academic abstraction discards -- (1) DISASTER-MONTH TIMING (sit out the bad regimes), (2) EXTREME FILTERING to a tiny high-conviction long-only pool (V7c iron rules), (3) ASYMMETRIC downside avoidance (never short; exclude bearish/overheated/worst-industry/zombie names). Decompose the Sharpe into TIMING vs SELECTION, reproduce a production-faithful long-only strategy, optimize its few knobs WALK-FORWARD (no in-sample tuning), and judge deployability cross-period under the existing honest discipline (leakage-free, cluster-robust, long-only net-of-cost, cross-period = SIGN-D1). HONEST: even this may not reproduce the production Sharpe (execution/discretion not captured; disaster filter is a simplified reproduction) -- but it finally targets where the edge actually lives. $0 (reuse D1 + disaster_filter + expert_pattern).",
   "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
-  "env": "Use .venv-xpu. D1 = data/processed/ashares_tushare_v1.parquet (OHLCV + pct_chg + amount + industry, 2022-2026). Reuse src/onset/candle_geometry + candle_pattern, src/train_tcn_wf (SPLITS, select_feature_columns, build_anchor_sequences), src/identify/neutral_targets, src/evaluation/onset_eval (clustered_bootstrap), src/onset/run_candle_ablation feature-building. wf_samples exist only for 2025 splits; for 2023/24 windows sample test anchors directly from D1.",
+  "env": "Use .venv-xpu. D1 = data/processed/ashares_tushare_v1.parquet (OHLCV + pct_chg + amount + industry, 2022-2026). Reuse src/onset/disaster_filter (compute_daily_market_signals + compute_disaster_signals -> is_disaster_month), src/onset/expert_pattern (bullish_onset_rules, bearish_onset_avoidance_rules), src/identify/neutral_targets, src/onset/long_only + ashare_cost (cost-aware long-only excess), src/onset/run_robustness window logic (2023/24 cross-period), src/evaluation/onset_eval.",
+  "discipline": "Carry ALL prior SIGNs. SIGN-P1 (new): the object under test is the PRODUCTION MECHANISM (timing + extreme filter + asymmetry), NOT a broad cross-sectional factor; always report the Sharpe DECOMPOSITION (timing vs selection). Any optimization is WALK-FORWARD (knobs chosen on TRAIN windows, judged on TEST) -- never in-sample. Deployable verdict per SIGN-D1 (long-only, net realistic cost, cross-period).",
   "acceptanceCriteria": [
     "verifyCommand (pytest tests/algo) passes",
-    "Method tasks ship a hermetic test (synthetic, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/deploy/; findings (incl. a collapse to null) recorded, never gated (SIGN-R1)",
-    "All tradability metrics are LONG-ONLY top-K market-excess, NET of the realistic A-share cost model (SIGN-D1)",
+    "Method tasks ship a hermetic test (synthetic, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/production/; findings (incl. nulls) recorded, never gated (SIGN-R1)",
+    "Tradability = LONG-ONLY, net of realistic A-share cost, reported with timing-vs-selection decomposition + cross-period (SIGN-P1/D1)",
     "$0 new LLM cost"
   ],
   "tasks": [
     {
-      "id": "LO1",
-      "title": "Long-only top-K market-excess metric",
-      "deliverable": "src/onset/long_only.py",
-      "test": "tests/algo/test_long_only.py",
-      "rationale": "A-shares cannot be shorted; the tradable object is a long-only top-K basket and its EXCESS over the market (cross-sectional mean) per date.",
+      "id": "TIM1",
+      "title": "Timing overlay + Sharpe decomposition (timing vs selection)",
+      "deliverable": "src/onset/timing_overlay.py",
+      "test": "tests/algo/test_timing_overlay.py",
+      "rationale": "A market-timing overlay (hold when in-market, cash when out) and a decomposition of total Sharpe into the part from TIMING (the in/out mask) vs from SELECTION (cross-sectional pick).",
       "acceptanceCriteria": [
-        "long_only_excess(df, sig, ret='_fwd_r5', date='trade_date', k_frac=0.1) -> per-date (mean ret of top-K by sig) - (cross-sectional mean ret) = long-only market excess; series over dates",
-        "returns gross mean per-period, annualized Sharpe, and a date-block bootstrap 95% CI",
-        "hermetic synthetic test: a signal correlated with ret gives positive excess; random gives CI spanning 0"
+        "timed_series(market_ret_by_date, in_market_by_date) -> strategy return (market when in, 0 when out)",
+        "decompose_sharpe(market_ret_by_date, in_market_by_date, selection_excess_by_date) -> {buy_hold, timed, timed_plus_selected} annualized Sharpe + the incremental Sharpe from timing and from selection",
+        "hermetic test: timing out the negative-return dates raises Sharpe; selection adds on top"
       ],
-      "priority": 1,
-      "passes": true,
-      "notes": "DONE: src/onset/long_only.py (long_only_excess top-K minus market per date + summarize_excess with block CI, cost-aware). 3 hermetic tests green."
+      "priority": 1, "passes": false, "notes": "Reuse src/onset/long_only.summarize_excess for Sharpe + CI."
     },
     {
-      "id": "COST1",
-      "title": "Realistic A-share cost / constraint model",
-      "deliverable": "src/onset/ashare_cost.py",
-      "test": "tests/algo/test_ashare_cost.py",
-      "rationale": "Replace the crude 0.4%/period: A-share has asymmetric stamp duty (sell-only ~0.05% since Aug 2023), commission (~0.025%/side), slippage, T+1 (no same-day sell), and 10% price limits (cannot buy at limit-up).",
+      "id": "TIM2",
+      "title": "REAL ($0): disaster-month timing test -- is the Sharpe from timing?",
+      "deliverable": "src/onset/run_timing.py",
+      "test": "tests/algo/test_run_timing_smoke.py",
+      "rationale": "The decisive timing test. Does avoiding disaster months (per disaster_filter) improve the equal-weight market Sharpe over buy-and-hold, across the full 2022-2025 history?",
       "acceptanceCriteria": [
-        "round_trip_cost(commission=0.00025, stamp_sell=0.0005, slippage=0.0005) -> buy_cost + sell_cost (stamp on sell only); default ~0.2% round-trip",
-        "enterable(df, pct_chg='pct_chg', limit=9.8) -> boolean mask excluding would-be limit-up entries (cannot buy)",
-        "net_excess(gross_excess_series, round_trip) subtracts cost per holding period",
-        "hermetic test: cost lowers net; stamp applies to sell only; limit-up bars flagged un-enterable"
-      ],
-      "priority": 2,
-      "passes": true,
-      "notes": "DONE: src/onset/ashare_cost.py (round_trip_cost ~0.2% stamp-on-sell-only; enterable excludes limit-up; net_excess). 3 hermetic tests green."
-    },
-    {
-      "id": "LO2",
-      "title": "REAL ($0): factors+candle LONG-ONLY net-excess, all-split go/no-go",
-      "deliverable": "src/onset/run_long_only.py",
-      "test": "tests/algo/test_run_long_only_smoke.py",
-      "rationale": "The decisive test. Does the factors+candle signal still produce a positive, cost-surviving LONG-ONLY market-excess across all splits once shorting is removed?",
-      "acceptanceCriteria": [
-        "reuse run_candle_ablation feature-building to train factors+candle LGBM per split; predict each split's test anchors (exclude un-enterable limit-up entries via COST1)",
-        "report per-split AND pooled long-only net market-excess: mean/period, annualized Sharpe, clustered CI (LO1 + COST1)",
-        "writes results/deploy/long_only.json; hermetic smoke green; real run executed + committed; go/no-go verdict (SIGN-D1) recorded in progress.md",
+        "compute is_disaster_month from D1 (disaster_filter); build per-date equal-weight market forward return",
+        "compare buy-and-hold vs disaster-timed (cash in disaster months) annualized Sharpe, net of (low) timing cost, per-year + pooled, with block CI",
+        "writes results/production/timing.json; hermetic smoke green; real run + committed; finding recorded (does timing carry the Sharpe?)",
         "$0"
       ],
-      "priority": 3,
-      "passes": true,
-      "notes": "DONE+REAL. FINDING: LONG-ONLY survived. pooled net market-excess Sharpe 1.10, mean +0.71%/period, CI [+0.0011,+0.0138] EXCLUDES 0; per-split net mean +1.17%/+0.52%/+0.45% = positive 3/3 (only split1 individually significant). PASS go on LO gate; full deployable verdict pending ROB1 cross-period. long_only.json committed."
+      "priority": 2, "passes": false, "notes": "Depends TIM1. Timing has low turnover -> cost is the regime-switch turnover only."
     },
     {
-      "id": "ROB1",
-      "title": "REAL ($0): cross-period (2023/24) + liquidity + top-K robustness",
-      "deliverable": "src/onset/run_robustness.py",
-      "test": "tests/algo/test_run_robustness_smoke.py",
-      "rationale": "Only one 2025 period so far. Build 2023 and 2024 walk-forward windows from D1; add a liquidity haircut (trade only liquid names) and top-K sensitivity.",
+      "id": "FILT1",
+      "title": "Extreme-filter high-conviction pool builder (V7c iron rules)",
+      "deliverable": "src/onset/extreme_filter.py",
+      "test": "tests/algo/test_extreme_filter.py",
+      "rationale": "Build the tiny high-conviction long-only pool: onset rules (expert_pattern) AND the V7c-style hard filters -- exclude overheated (past_r5>+8%), zombies (flat MA60), worst-10%-industry by 60d momentum, keep only the top-percentile by a score.",
       "acceptanceCriteria": [
-        "define 2023 and 2024 train/test windows; sample test anchors from D1 (valid fwd_r5); re-evaluate factors+candle long-only net-excess",
-        "liquidity haircut: restrict to top-liquidity names by amount; top-K sensitivity k in {0.05, 0.1, 0.2}",
-        "writes results/deploy/robustness.json; hermetic smoke green; real run + committed; whether the edge holds across years recorded",
+        "pool_mask(panel_with_features, score_col, top_pct=0.05) -> boolean per-anchor pool membership combining onset + hard filters",
+        "individual filters exposed (overheated, zombie, industry_momentum_rank) and point-in-time",
+        "hermetic synthetic test: filters exclude the constructed overheated/zombie/worst-industry rows; pool is a small subset"
+      ],
+      "priority": 3, "passes": false, "notes": "Reuse src/onset/expert_pattern; compute 60d industry momentum + MA60 flatness from D1."
+    },
+    {
+      "id": "FILT2",
+      "title": "REAL ($0): edge of the extreme-filtered high-conviction pool",
+      "deliverable": "src/onset/run_filtered_pool.py",
+      "test": "tests/algo/test_run_filtered_pool_smoke.py",
+      "rationale": "Does the small filtered pool have a long-only edge the broad cross-section lacked? Small N, but that is the real product.",
+      "acceptanceCriteria": [
+        "per date, the filtered pool's long-only market-excess forward return; all-split + cross-period (2023/24); net of realistic cost; clustered CI; report pool size per date",
+        "writes results/production/filtered_pool.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 4,
-      "passes": true,
-      "notes": "DONE+REAL. KILL SHOT: the 2025 long-only edge does NOT hold cross-period. 2023 net Sharpe -0.37, 2024 -0.36 (both negative); liquid-only -0.32; topK {5,10,20%} all negative. holds_across_years=FALSE. The 2025 result was period-specific. robustness.json committed."
+      "priority": 4, "passes": false, "notes": "Depends FILT1. Reuse run_robustness windows + long_only + ashare_cost."
     },
     {
-      "id": "CAP1",
-      "title": "Capacity estimate (ADV-based)",
-      "deliverable": "src/onset/capacity.py",
-      "test": "tests/algo/test_capacity.py",
-      "rationale": "How much capital before the edge decays? Estimate from the average daily traded value (amount) of the top-K names and a participation cap.",
+      "id": "COMBO1",
+      "title": "REAL ($0): production-faithful strategy = timing x filtering x asymmetry, full validation",
+      "deliverable": "src/onset/run_production_faithful.py",
+      "test": "tests/algo/test_run_production_faithful_smoke.py",
+      "rationale": "Combine: in-market only when not disaster-month; hold the extreme-filtered long-only pool; exclude downside names. Evaluate long-only net-of-cost, all-split + cross-period (SIGN-D1).",
       "acceptanceCriteria": [
-        "capacity(top_names_adv, participation=0.05, k_names) -> rough max capital (sum of participation*ADV across the basket)",
-        "hermetic test on synthetic ADV"
+        "combined strategy return series; long-only net market-excess + absolute Sharpe; per-split + 2025 pooled + 2023/24 cross-period",
+        "Sharpe decomposition: buy-hold vs +timing vs +timing+filter (TIM1)",
+        "writes results/production/combo.json; hermetic smoke green; real run + committed; SIGN-D1 deployable verdict recorded",
+        "$0"
       ],
-      "priority": 5,
-      "passes": true,
-      "notes": "DONE: src/onset/capacity.py (participation*sum(ADV) capacity estimate). 2 hermetic tests green."
+      "priority": 5, "passes": false, "notes": "Depends TIM2, FILT2."
     },
     {
-      "id": "DSYN",
-      "title": "Deployability verdict + synthesis",
-      "deliverable": "src/onset/summarize_deploy.py",
-      "test": "tests/algo/test_summarize_deploy_smoke.py",
-      "rationale": "Aggregate LO2 + ROB1 + CAP1 into the final deployability verdict + table + figure.",
+      "id": "OPT1",
+      "title": "REAL ($0): walk-forward knob optimization (no in-sample tuning)",
+      "deliverable": "src/onset/run_optimize_wf.py",
+      "test": "tests/algo/test_run_optimize_wf_smoke.py",
+      "rationale": "Optimize the few real knobs -- disaster vote threshold {1,2,3}, filter top_pct {0.05,0.1,0.2}, holding horizon -- selecting on TRAIN windows and judging on TEST, so the reported performance is out-of-sample.",
       "acceptanceCriteria": [
-        "reads results/deploy/* -> results/deploy/summary.md + paper/sections/figures/deploy_summary.png",
-        "verdict (SIGN-D1): DEPLOYABLE only if long-only net-excess pooled CI excludes 0 AND >=2/3 splits positive AND holds across >=1 additional year; else 'statistically-real-but-not-tradable' or 'collapsed'",
+        "for each split: choose the knob config maximizing TRAIN-window net long-only excess; evaluate that config on the TEST window",
+        "report walk-forward-selected out-of-sample net Sharpe + the full sensitivity grid (to show snooping risk)",
+        "writes results/production/optimize.json; hermetic smoke green; real run + committed; finding recorded",
+        "$0"
+      ],
+      "priority": 6, "passes": false, "notes": "Depends COMBO1. NEVER report the best in-sample config as the result (SIGN-P1)."
+    },
+    {
+      "id": "PSYN",
+      "title": "Production-edge verdict + Sharpe-decomposition synthesis",
+      "deliverable": "src/onset/summarize_production.py",
+      "test": "tests/algo/test_summarize_production_smoke.py",
+      "rationale": "Aggregate TIM2 + FILT2 + COMBO1 + OPT1 into the Sharpe decomposition (how much from timing vs filtering) + the final deployability verdict + figure.",
+      "acceptanceCriteria": [
+        "reads results/production/* -> results/production/summary.md + paper/sections/figures/production_edge_summary.png",
+        "verdict: where (if anywhere) the reproducible edge lives (timing / filtering / both / none), and whether it is deployable cross-period (SIGN-D1)",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 6,
-      "passes": true,
-      "notes": "DONE+REAL: src/onset/summarize_deploy.py -> summary.md + figure. VERDICT: STATISTICALLY-REAL-ON-2025-BUT-NOT-DEPLOYABLE (collapses cross-period: 2025 net Sharpe +1.10, 2023 -0.37, 2024 -0.36). full gate 81 passed."
+      "priority": 7, "passes": false, "notes": "Depends TIM2, FILT2, COMBO1, OPT1."
     }
   ]
 }

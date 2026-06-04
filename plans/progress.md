@@ -124,3 +124,8 @@ Candlestick line merged to main + archived to prd_candlestick_done.json.
 
 ## COMPLETE (research/deployability)
 FINAL DEPLOYABILITY VERDICT: STATISTICALLY-REAL-ON-2025-BUT-NOT-DEPLOYABLE. The factors+candle signal passed the in-sample 2025 SIGN-K1 long-short bar AND the 2025 long-only cost gate (LO2 net Sharpe 1.10, 3/3 splits positive), but COLLAPSES cross-period: long-only net Sharpe 2023 -0.37, 2024 -0.36 (ROB1) -> period-specific, not a stable tradable edge. SIGN-D1 not met. The discipline caught what a 2025-only backtest would have missed; deploying on the 2025 result would have lost money in 2023/24.
+
+## NEW LINE (research/production-edge) -- where V12.31 actually makes money
+Insight (from Appendix A): V12.31's edge is NOT the broad onset signal but (1) disaster-month TIMING, (2) EXTREME FILTERING to a tiny high-conviction long-only pool (V7c iron rules), (3) ASYMMETRIC downside avoidance. We tested the wrong object all along.
+Tasks: TIM1 timing overlay + Sharpe decomposition -> TIM2 REAL disaster-month timing test; FILT1 extreme-filter pool builder -> FILT2 REAL filtered-pool edge; COMBO1 REAL production-faithful (timing x filter x asymmetry, SIGN-D1); OPT1 REAL walk-forward knob optimization; PSYN verdict + decomposition. All $0 (D1 + disaster_filter + expert_pattern). New SIGN-P1.
+Deployability line merged to main + archived to prd_deployability_done.json.
