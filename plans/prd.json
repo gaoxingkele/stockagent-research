@@ -23,7 +23,9 @@
         "decompose_sharpe(market_ret_by_date, in_market_by_date, selection_excess_by_date) -> {buy_hold, timed, timed_plus_selected} annualized Sharpe + the incremental Sharpe from timing and from selection",
         "hermetic test: timing out the negative-return dates raises Sharpe; selection adds on top"
       ],
-      "priority": 1, "passes": false, "notes": "Reuse src/onset/long_only.summarize_excess for Sharpe + CI."
+      "priority": 1,
+      "passes": true,
+      "notes": "DONE: src/onset/timing_overlay.py (timed_series + decompose_sharpe: buy_hold vs timed vs timed+selected, incremental timing/selection). 3 hermetic tests green."
     },
     {
       "id": "TIM2",
@@ -37,7 +39,9 @@
         "writes results/production/timing.json; hermetic smoke green; real run + committed; finding recorded (does timing carry the Sharpe?)",
         "$0"
       ],
-      "priority": 2, "passes": false, "notes": "Depends TIM1. Timing has low turnover -> cost is the regime-switch turnover only."
+      "priority": 2,
+      "passes": false,
+      "notes": "Depends TIM1. Timing has low turnover -> cost is the regime-switch turnover only."
     },
     {
       "id": "FILT1",
@@ -50,7 +54,9 @@
         "individual filters exposed (overheated, zombie, industry_momentum_rank) and point-in-time",
         "hermetic synthetic test: filters exclude the constructed overheated/zombie/worst-industry rows; pool is a small subset"
       ],
-      "priority": 3, "passes": false, "notes": "Reuse src/onset/expert_pattern; compute 60d industry momentum + MA60 flatness from D1."
+      "priority": 3,
+      "passes": false,
+      "notes": "Reuse src/onset/expert_pattern; compute 60d industry momentum + MA60 flatness from D1."
     },
     {
       "id": "FILT2",
@@ -63,7 +69,9 @@
         "writes results/production/filtered_pool.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends FILT1. Reuse run_robustness windows + long_only + ashare_cost."
+      "priority": 4,
+      "passes": false,
+      "notes": "Depends FILT1. Reuse run_robustness windows + long_only + ashare_cost."
     },
     {
       "id": "COMBO1",
@@ -77,7 +85,9 @@
         "writes results/production/combo.json; hermetic smoke green; real run + committed; SIGN-D1 deployable verdict recorded",
         "$0"
       ],
-      "priority": 5, "passes": false, "notes": "Depends TIM2, FILT2."
+      "priority": 5,
+      "passes": false,
+      "notes": "Depends TIM2, FILT2."
     },
     {
       "id": "OPT1",
@@ -91,7 +101,9 @@
         "writes results/production/optimize.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 6, "passes": false, "notes": "Depends COMBO1. NEVER report the best in-sample config as the result (SIGN-P1)."
+      "priority": 6,
+      "passes": false,
+      "notes": "Depends COMBO1. NEVER report the best in-sample config as the result (SIGN-P1)."
     },
     {
       "id": "PSYN",
@@ -104,7 +116,9 @@
         "verdict: where (if anywhere) the reproducible edge lives (timing / filtering / both / none), and whether it is deployable cross-period (SIGN-D1)",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 7, "passes": false, "notes": "Depends TIM2, FILT2, COMBO1, OPT1."
+      "priority": 7,
+      "passes": false,
+      "notes": "Depends TIM2, FILT2, COMBO1, OPT1."
     }
   ]
 }
