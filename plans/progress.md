@@ -135,3 +135,5 @@ Deployability line merged to main + archived to prd_deployability_done.json.
 - **FILT1 DONE**: src/onset/extreme_filter.py -- extreme-filter high-conviction pool (onset + not-overheated + not-zombie + not-worst-industry + top-pct). 3 hermetic tests green.
 - **FILT2 DONE+REAL**: reproduced onset+filter selection pool UNDERPERFORMS the market: long-only excess Sharpe 2023 -2.62 / 2024 -2.14 / 2025 -2.66, pooled -1.83 (CI negative, excludes 0); 0/3 positive years. Selection component as reproduced is a NEGATIVE edge. Stricter settings swept in OPT1.
   - Next: COMBO1, OPT1, PSYN.
+- **COMBO1 DONE+REAL** (artifact caught): Sharpe decomposition shows timed/combo Sharpe >> buy-hold, but it is a Sharpe-INFLATION artifact (cash during volatile down periods cuts vol) + small-sample noise (40-48 pts, 2025 timed 5.78), CONTRADICTING robust TIM2 (timing wash) + FILT2 (selection negative). On the robust mean basis: no reliable edge. PSYN uses the mean criterion, not Sharpe.
+  - Next: OPT1 (walk-forward knob sweep), PSYN (verdict).

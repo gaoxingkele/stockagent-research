@@ -1,0 +1,49 @@
+{
+  "onset_score_min": 2,
+  "top_pct": 0.2,
+  "per_year": {
+    "2022": {
+      "buy_hold_sharpe": -0.42475349464806145,
+      "timed_sharpe": 1.5801361300618586,
+      "n_periods": 49,
+      "timed_plus_selected_sharpe": 1.5801361300618586,
+      "incremental_selection": 0.0,
+      "incremental_timing": 2.00488962470992
+    },
+    "2023": {
+      "buy_hold_sharpe": 0.25338988167363985,
+      "timed_sharpe": 2.2581784115607735,
+      "n_periods": 48,
+      "timed_plus_selected_sharpe": 1.5243999979244622,
+      "incremental_selection": -0.7337784136363112,
+      "incremental_timing": 2.0047885298871337
+    },
+    "2024": {
+      "buy_hold_sharpe": 0.19894712451204039,
+      "timed_sharpe": 1.876398836611439,
+      "n_periods": 49,
+      "timed_plus_selected_sharpe": 1.8065405177454827,
+      "incremental_selection": -0.06985831886595628,
+      "incremental_timing": 1.6774517120993986
+    },
+    "2025": {
+      "buy_hold_sharpe": 2.352048756418986,
+      "timed_sharpe": 5.783727959432435,
+      "n_periods": 48,
+      "timed_plus_selected_sharpe": 5.0897776649898265,
+      "incremental_selection": -0.6939502944426081,
+      "incremental_timing": 3.4316792030134486
+    }
+  },
+  "pooled": {
+    "buy_hold_sharpe": 0.3803692476968586,
+    "timed_sharpe": 1.9496194948927215,
+    "n_periods": 212,
+    "timed_plus_selected_sharpe": 2.021920222017796,
+    "incremental_selection": 0.0723007271250744,
+    "incremental_timing": 1.569250247195863
+  },
+  "combo_beats_buyhold_pooled": true,
+  "years_combo_beats_buyhold": 4,
+  "verdict": "combo beats buy-hold cross-period"
+}

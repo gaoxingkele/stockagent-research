@@ -86,8 +86,8 @@
         "$0"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": "Depends TIM2, FILT2."
+      "passes": true,
+      "notes": "DONE+REAL. FINDING (with caveat): the Sharpe decomposition shows timed/combo Sharpe >> buy-hold (pooled timed 1.95 vs TIM2 0.46), BUT this is a Sharpe-INFLATION artifact -- sitting in cash during volatile down periods cuts strategy vol -> inflates Sharpe; and annualized Sharpe on ~40-48 non-overlapping points is noise (2025 timed 5.78). It CONTRADICTS the robust TIM2 (timing wash, +0.08 mean) and FILT2 (selection NEGATIVE). On the robust mean-return basis there is no reliable edge. NOT to be reported as combo-beats-buyhold. combo.json committed."
     },
     {
       "id": "OPT1",
