@@ -38,6 +38,8 @@ results/*
 !results/candle/**
 !results/deploy/
 !results/deploy/**
+!results/production/
+!results/production/**
 experiments/runs/*
 !experiments/runs/.gitkeep
 

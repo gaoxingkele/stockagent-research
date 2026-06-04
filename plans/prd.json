@@ -40,8 +40,8 @@
         "$0"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "Depends TIM1. Timing has low turnover -> cost is the regime-switch turnover only."
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: timing edge NOT reproducible with available signals. (a) disaster_filter reproduction BROKEN: fires 0.5%, ZERO in 2022 bear (concept signals C2/C3 are TODO). (b) standard trend regime is net wash (pooled buy_hold 0.38 -> timed 0.46, +0.08, CI spans 0) and regime-dependent: helps 2022(-0.42->+0.08)/2024(+0.20->+0.60), hurts 2023/2025. -> the hypothesis that the Sharpe is mostly timing is NOT supported with these signals; production timing needs the full disaster composite. timing.json committed."
     },
     {
       "id": "FILT1",
