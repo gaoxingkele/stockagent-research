@@ -1,0 +1,47 @@
+{
+  "onset_score_min": 2,
+  "top_pct": 0.2,
+  "round_trip_cost": 0.002,
+  "pool_frac_overall": 0.056534425411671224,
+  "median_pool_size_per_date": 357.0,
+  "n_dates_with_pool": 820,
+  "per_year": {
+    "2023": {
+      "mean_per_period": -0.005530159403701245,
+      "annualized_sharpe": -2.6184489449739745,
+      "n_dates": 242,
+      "mean_ci95": [
+        -0.007401689975473449,
+        -0.0037142873070314985
+      ]
+    },
+    "2024": {
+      "mean_per_period": -0.007180291956153113,
+      "annualized_sharpe": -2.1446902338944134,
+      "n_dates": 242,
+      "mean_ci95": [
+        -0.010253579030416494,
+        -0.004182214725922184
+      ]
+    },
+    "2025": {
+      "mean_per_period": -0.00508531985138277,
+      "annualized_sharpe": -2.6603664242791116,
+      "n_dates": 243,
+      "mean_ci95": [
+        -0.006786414836332109,
+        -0.003203031147894759
+      ]
+    }
+  },
+  "pooled": {
+    "mean_per_period": -0.0047024230188585335,
+    "annualized_sharpe": -1.827973349290793,
+    "n_dates": 815,
+    "mean_ci95": [
+      -0.005996342697058052,
+      -0.0033721086472504186
+    ]
+  },
+  "positive_years": 0
+}

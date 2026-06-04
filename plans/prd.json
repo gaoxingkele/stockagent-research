@@ -70,8 +70,8 @@
         "$0"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Depends FILT1. Reuse run_robustness windows + long_only + ashare_cost."
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: the reproduced onset+filter selection pool UNDERPERFORMS the market consistently: long-only market-excess Sharpe 2023 -2.62 / 2024 -2.14 / 2025 -2.66, pooled -1.83 (CI excludes 0 on the negative side); 0/3 positive years. The SELECTION component as reproduced is a NEGATIVE long-only edge. (Lenient settings score>=2/top20%; stricter swept in OPT1.) filtered_pool.json committed."
     },
     {
       "id": "COMBO1",

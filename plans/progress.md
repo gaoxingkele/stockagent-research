@@ -133,3 +133,5 @@ Deployability line merged to main + archived to prd_deployability_done.json.
 - **TIM2 DONE+REAL**:  two regime arms. FINDING: timing edge NOT reproducible with available signals. disaster_filter reproduction is BROKEN (fires 0.5%, 0 in 2022 bear; concept signals C2/C3 are unimplemented TODOs). Standard trend regime = net wash (pooled +0.08 Sharpe, CI spans 0), regime-dependent (helps 2022/2024, hurts 2023/2025). The 'Sharpe is mostly timing' hypothesis is NOT supported here; the production timing edge needs the full disaster composite. timing.json committed. results/production un-ignored.
   - Next: FILT1 extreme-filter pool -> FILT2; COMBO1; OPT1; PSYN.
 - **FILT1 DONE**: src/onset/extreme_filter.py -- extreme-filter high-conviction pool (onset + not-overheated + not-zombie + not-worst-industry + top-pct). 3 hermetic tests green.
+- **FILT2 DONE+REAL**: reproduced onset+filter selection pool UNDERPERFORMS the market: long-only excess Sharpe 2023 -2.62 / 2024 -2.14 / 2025 -2.66, pooled -1.83 (CI negative, excludes 0); 0/3 positive years. Selection component as reproduced is a NEGATIVE edge. Stricter settings swept in OPT1.
+  - Next: COMBO1, OPT1, PSYN.
