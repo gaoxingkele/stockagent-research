@@ -71,8 +71,8 @@
         "$0"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Depends LO1, COST1, LO2. Pure tabular model -> no leakage concern adding earlier windows."
+      "passes": true,
+      "notes": "DONE+REAL. KILL SHOT: the 2025 long-only edge does NOT hold cross-period. 2023 net Sharpe -0.37, 2024 -0.36 (both negative); liquid-only -0.32; topK {5,10,20%} all negative. holds_across_years=FALSE. The 2025 result was period-specific. robustness.json committed."
     },
     {
       "id": "CAP1",
