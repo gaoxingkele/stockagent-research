@@ -24,7 +24,9 @@
         "rolling relative-position features over prior N bars: close percentile in prior-N high-low range, breakout flag (C > max prior-N high), dist-from-prior-N-low in ATR units, consecutive higher-lows count, volume ratio recent vs prior-N mean, compression (recent range / prior-N range)",
         "hermetic synthetic OHLCV test: features finite, scale-invariant (scaling all prices leaves geometry unchanged), breakout flag correct on a constructed breakout"
       ],
-      "priority": 1, "passes": false, "notes": "Scale-invariance is the key property (relative position). Handle range=0 / short history."
+      "priority": 1,
+      "passes": true,
+      "notes": "DONE: src/onset/candle_geometry.py (per_bar_geometry + relative_position + candle_features + panel wrapper; scale-invariant, point-in-time). 3 hermetic tests green (finite, scale-invariance, breakout flag)."
     },
     {
       "id": "K2",
@@ -37,7 +39,9 @@
         "anchor_sequences(panel, anchor_keys, window) -> [N, W, n_geom] geometry sequence + valid mask (reuse build_anchor_sequences pattern)",
         "hermetic synthetic test: shapes correct; point-in-time respected (no bar on/after the target date used)"
       ],
-      "priority": 2, "passes": false, "notes": "Reuse src/train_tcn_wf.build_anchor_sequences logic for the sequence path."
+      "priority": 2,
+      "passes": true,
+      "notes": "DONE: src/onset/candle_pattern.py (anchor_features flat + anchor_sequences, reuse build_anchor_sequences). 2 hermetic tests green incl point-in-time (future bars do not leak)."
     },
     {
       "id": "K3",
@@ -51,7 +55,9 @@
         "writes results/candle/lgbm.json; hermetic smoke green; real run executed + committed; verdict per SIGN-K1 recorded in progress.md",
         "$0"
       ],
-      "priority": 3, "passes": false, "notes": "Depends K1,K2. SIGN-K1: alpha only if pooled NET long-short Sharpe CI excludes 0 AND positive in >=2/3 splits."
+      "priority": 3,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: candle features give pooled market-neutral RankIC +0.039 [+0.016,+0.065] (EXCLUDES 0 -- strongest cross-sectional signal yet). But tradable: pooled NET long-short Sharpe 0.54, net mean CI [-0.003,+0.009] spans 0; split3 net negative. SIGN-K1: net>0 in 2/3 splits but pooled net CI spans 0 -> NOT alpha1 (small real signal, not cost-surviving/regime-stable). lgbm.json committed."
     },
     {
       "id": "K4",
@@ -65,7 +71,9 @@
         "writes results/candle/seq.json; hermetic smoke <30s green; real run executed + committed; verdict recorded",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends K2. Reuse train_onset_real machinery. Keep modest (XPU, few min)."
+      "priority": 4,
+      "passes": true,
+      "notes": "DONE+REAL(XPU,328s,3 splits x3 seeds). FINDING: learned candle-seq pooled market-neutral RankIC +0.062 [+0.036,+0.089] (excludes 0, > K3 flat +0.039); pooled NET long-short Sharpe 0.63, net mean CI [-0.0022,+0.0099] spans 0 -> not cost-surviving. Same verdict as K3. seq.json committed."
     },
     {
       "id": "K5",
@@ -78,7 +86,9 @@
         "writes results/candle/ablation.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 5, "passes": false, "notes": "Depends K2, K3. Reuse src/train_tcn_wf.select_feature_columns for the factor set."
+      "priority": 5,
+      "passes": true,
+      "notes": "DONE+REAL (after fixing a _fwd_r5 leak in factor_cols that gave RankIC 0.825). FINDING: candle geometry is COMPLEMENTARY to smoothed factors -- pooled net long-short Sharpe factors 0.81 -> factors+candle 1.76 (incremental +0.95), RankIC 0.061 -> 0.083. candle-alone weak/negative net. ablation.json committed. Per-split SIGN-K1 verdict in K6."
     },
     {
       "id": "K6",
@@ -91,7 +101,9 @@
         "computes the alpha1 verdict: REAL only if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe > 0 in >=2/3 splits; else 'overfit/single-split' or 'null'",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 6, "passes": false, "notes": "Depends K3,K4,K5."
+      "priority": 6,
+      "passes": true,
+      "notes": "DONE+REAL: src/onset/summarize_candle.py -> summary.md + figure. VERDICT: no confirmed alpha1; factors+candle PROMISING (pooled net CI excludes 0, Sharpe 1.76, incremental +0.95) but per-split unconfirmed; candle-only null after cost. full gate 67 passed."
     }
   ]
 }
