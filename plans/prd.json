@@ -22,7 +22,9 @@
         "returns gross mean per-period, annualized Sharpe, and a date-block bootstrap 95% CI",
         "hermetic synthetic test: a signal correlated with ret gives positive excess; random gives CI spanning 0"
       ],
-      "priority": 1, "passes": false, "notes": "Long-only excess = top-K basket return minus the equal-weight market that date (the realistic, shortable-free alpha)."
+      "priority": 1,
+      "passes": true,
+      "notes": "DONE: src/onset/long_only.py (long_only_excess top-K minus market per date + summarize_excess with block CI, cost-aware). 3 hermetic tests green."
     },
     {
       "id": "COST1",
@@ -36,7 +38,9 @@
         "net_excess(gross_excess_series, round_trip) subtracts cost per holding period",
         "hermetic test: cost lowers net; stamp applies to sell only; limit-up bars flagged un-enterable"
       ],
-      "priority": 2, "passes": false, "notes": "Keep parametric + documented; defaults reflect 2025 A-share retail costs."
+      "priority": 2,
+      "passes": true,
+      "notes": "DONE: src/onset/ashare_cost.py (round_trip_cost ~0.2% stamp-on-sell-only; enterable excludes limit-up; net_excess). 3 hermetic tests green."
     },
     {
       "id": "LO2",
@@ -50,7 +54,9 @@
         "writes results/deploy/long_only.json; hermetic smoke green; real run executed + committed; go/no-go verdict (SIGN-D1) recorded in progress.md",
         "$0"
       ],
-      "priority": 3, "passes": false, "notes": "Depends LO1, COST1. Deployable only if pooled net-excess CI excludes 0 AND >=2/3 splits positive."
+      "priority": 3,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: LONG-ONLY survived. pooled net market-excess Sharpe 1.10, mean +0.71%/period, CI [+0.0011,+0.0138] EXCLUDES 0; per-split net mean +1.17%/+0.52%/+0.45% = positive 3/3 (only split1 individually significant). PASS go on LO gate; full deployable verdict pending ROB1 cross-period. long_only.json committed."
     },
     {
       "id": "ROB1",
@@ -64,7 +70,9 @@
         "writes results/deploy/robustness.json; hermetic smoke green; real run + committed; whether the edge holds across years recorded",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends LO1, COST1, LO2. Pure tabular model -> no leakage concern adding earlier windows."
+      "priority": 4,
+      "passes": true,
+      "notes": "DONE+REAL. KILL SHOT: the 2025 long-only edge does NOT hold cross-period. 2023 net Sharpe -0.37, 2024 -0.36 (both negative); liquid-only -0.32; topK {5,10,20%} all negative. holds_across_years=FALSE. The 2025 result was period-specific. robustness.json committed."
     },
     {
       "id": "CAP1",
@@ -76,7 +84,9 @@
         "capacity(top_names_adv, participation=0.05, k_names) -> rough max capital (sum of participation*ADV across the basket)",
         "hermetic test on synthetic ADV"
       ],
-      "priority": 5, "passes": false, "notes": "Reads amount (turnover value) from D1 in the real path; the function itself is pure."
+      "priority": 5,
+      "passes": true,
+      "notes": "DONE: src/onset/capacity.py (participation*sum(ADV) capacity estimate). 2 hermetic tests green."
     },
     {
       "id": "DSYN",
@@ -89,7 +99,9 @@
         "verdict (SIGN-D1): DEPLOYABLE only if long-only net-excess pooled CI excludes 0 AND >=2/3 splits positive AND holds across >=1 additional year; else 'statistically-real-but-not-tradable' or 'collapsed'",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 6, "passes": false, "notes": "Depends LO2, ROB1, CAP1."
+      "priority": 6,
+      "passes": true,
+      "notes": "DONE+REAL: src/onset/summarize_deploy.py -> summary.md + figure. VERDICT: STATISTICALLY-REAL-ON-2025-BUT-NOT-DEPLOYABLE (collapses cross-period: 2025 net Sharpe +1.10, 2023 -0.37, 2024 -0.36). full gate 81 passed."
     }
   ]
 }
