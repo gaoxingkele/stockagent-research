@@ -100,8 +100,8 @@
         "hermetic smoke green; real run + committed"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": "Depends LO2, ROB1, CAP1."
+      "passes": true,
+      "notes": "DONE+REAL: src/onset/summarize_deploy.py -> summary.md + figure. VERDICT: STATISTICALLY-REAL-ON-2025-BUT-NOT-DEPLOYABLE (collapses cross-period: 2025 net Sharpe +1.10, 2023 -0.37, 2024 -0.36). full gate 81 passed."
     }
   ]
 }
