@@ -55,8 +55,8 @@
         "hermetic synthetic test: filters exclude the constructed overheated/zombie/worst-industry rows; pool is a small subset"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": "Reuse src/onset/expert_pattern; compute 60d industry momentum + MA60 flatness from D1."
+      "passes": true,
+      "notes": "DONE: src/onset/extreme_filter.py (pool_mask = onset(expert_pattern) & not-overheated & not-zombie & not-worst-industry & top-pct). 3 hermetic tests green. (Fixed bullish_onset_rules index-alignment by sorting+reset before calling.)"
     },
     {
       "id": "FILT2",
