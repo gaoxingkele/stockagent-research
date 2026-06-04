@@ -113,3 +113,4 @@ BUT NOT YET DEPLOYABLE ALPHA -- binding caveats: (1) A-shares largely CANNOT be 
 Goal: force the SIGN-K1-passing factors+candle signal through real A-share constraints. (1) LONG-ONLY top-K market-excess (no shorting); (2) realistic cost model (asymmetric stamp duty / commission / slippage / T+1 / limit-up); (3) cross-period (2023/24 windows) + liquidity + top-K robustness + capacity. HONEST: long-only likely weaker -> genuine go/no-go. $0.
 Tasks: LO1 long-only metric -> COST1 A-share cost model -> LO2 REAL factors+candle long-only net-excess go/no-go; ROB1 REAL cross-period+liquidity+topK; CAP1 capacity; DSYN verdict. New SIGN-D1.
 Candlestick line merged to main + archived to prd_candlestick_done.json.
+- **LO1 DONE** (branch research/deployability): `src/onset/long_only.py` -- long-only top-K market-excess (top-K minus equal-weight market per date) + summarize_excess (annualized Sharpe + block CI, cost-aware). 3 hermetic tests green.
