@@ -139,3 +139,7 @@ Deployability line merged to main + archived to prd_deployability_done.json.
   - Next: OPT1 (walk-forward knob sweep), PSYN (verdict).
 - **OPT1 DONE+REAL**: walk-forward knob optimization -> NO config recovers an edge. WF-selected OOS test Sharpe -2.14 / -2.66; best train config still negative. Selection pool robustly NEGATIVE across all knobs, in-sample AND OOS.
   - Next: PSYN final verdict.
+- **PSYN DONE+REAL**: production-edge verdict -> NOT REPRODUCIBLE. timing wash (+0.08), selection negative (-1.83, 0/3 yrs), WF-opt OOS negative, disaster filter broken (0.47%). full gate 94.
+
+## COMPLETE (research/production-edge)
+FINAL: the DOCUMENTED V12.31 rules (onset + V7c filters + simplified disaster timing) do NOT reproduce the production Sharpe 2.20. Timing is a wash; selection is robustly NEGATIVE (all years, all knobs, OOS); the reproduced disaster filter barely fires (concept signals C2/C3 unimplemented). The real edge lives in parts NOT in the released knowledge: the FULL disaster composite, the actual r20_pred predictive model, execution/risk/discretion, and production parameter calibration. The released expert prompt is INSUFFICIENT to reproduce the alpha.

@@ -117,8 +117,8 @@
         "hermetic smoke green; real run + committed"
       ],
       "priority": 7,
-      "passes": false,
-      "notes": "Depends TIM2, FILT2, COMBO1, OPT1."
+      "passes": true,
+      "notes": "DONE+REAL: src/onset/summarize_production.py -> summary.md + figure. VERDICT: NOT REPRODUCIBLE (timing wash +0.08; selection -1.83 / 0-3 years; WF-opt OOS -2.14/-2.66; disaster filter broken 0.47%). full gate 94."
     }
   ]
 }
