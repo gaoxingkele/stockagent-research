@@ -39,8 +39,8 @@
         "hermetic test: cost lowers net; stamp applies to sell only; limit-up bars flagged un-enterable"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "Keep parametric + documented; defaults reflect 2025 A-share retail costs."
+      "passes": true,
+      "notes": "DONE: src/onset/ashare_cost.py (round_trip_cost ~0.2% stamp-on-sell-only; enterable excludes limit-up; net_excess). 3 hermetic tests green."
     },
     {
       "id": "LO2",

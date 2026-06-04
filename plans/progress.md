@@ -114,3 +114,4 @@ Goal: force the SIGN-K1-passing factors+candle signal through real A-share const
 Tasks: LO1 long-only metric -> COST1 A-share cost model -> LO2 REAL factors+candle long-only net-excess go/no-go; ROB1 REAL cross-period+liquidity+topK; CAP1 capacity; DSYN verdict. New SIGN-D1.
 Candlestick line merged to main + archived to prd_candlestick_done.json.
 - **LO1 DONE** (branch research/deployability): `src/onset/long_only.py` -- long-only top-K market-excess (top-K minus equal-weight market per date) + summarize_excess (annualized Sharpe + block CI, cost-aware). 3 hermetic tests green.
+- **COST1 DONE**: `src/onset/ashare_cost.py` -- realistic A-share round-trip cost ~0.2% (stamp on sell only) + enterable (excludes limit-up entries) + net_excess. 3 hermetic tests green.
