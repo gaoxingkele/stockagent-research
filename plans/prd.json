@@ -1,109 +1,95 @@
 {
   "repo": "gaoxingkele/stockagent-research",
-  "branchName": "research/candlestick-onset",
-  "goal": "Hunt for a small, real, A-share-specific idiosyncratic edge (alpha1) using the onset construct the user proposed: the geometry of the recent 1-3 candlesticks RELATIVE TO their position within the prior 3-9 bars -- a dynamic 3-12 bar combination. Rationale: structural candle geometry (not smoothed scalars) + relative-position normalization (scale/vol/regime invariant, fixes the non-stationarity that flipped earlier signals) on A-shares (an inefficient, retail emerging market -- the one regime where the candlestick literature says an edge can survive) and matching the V12.31 production rules. METHOD IS NOT NOVEL (large candlestick+ML literature); the contribution is an HONEST, leakage-free, multi-split, cost-aware, market-neutral test that separates a real small edge from the usual candlestick overfit. Reuses existing A-share OHLC -> $0.",
+  "branchName": "research/deployability",
+  "goal": "Deployability gauntlet for the only signal that cleared our honest statistical bar -- factors+candle (pooled net long-short Sharpe 1.76, positive in 3/3 splits, SIGN-K1 REAL). Decide whether it survives REAL A-share trading constraints or collapses to an in-sample artifact, by forcing it through three gates: (1) LONG-ONLY top-K market-excess, because A-shares mostly cannot be shorted, so the long-short is not directly tradable; (2) a REALISTIC A-share cost/constraint model (asymmetric stamp duty, commission, slippage, T+1, 10% price limits / un-enterable limit-up bars); (3) cross-period robustness (build 2023/2024 walk-forward windows from D1, liquidity haircut, top-K sensitivity) + a capacity estimate. HONEST EXPECTATION: long-only likely WEAKER (A-share short side often carries more signal via retail overreaction); this is a genuine go/no-go, not a victory lap. $0 (reuse D1 + candle/factor code).",
   "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
-  "env": "Use .venv-xpu. D1 = data/processed/ashares_tushare_v1.parquet has OHLCV. Reuse src/train_tcn_wf (SPLITS, build_anchor_sequences, select_feature_columns), src/identify/neutral_targets (market/sector neutral target), src/identify/run_neutral_identify.long_short, src/evaluation/onset_eval (clustered_bootstrap), src/models/tcn_cross_attn + src/identify/contrastive_encoder. Test anchors per split: data/processed/wf_samples_split{1,2,3}.parquet.",
-  "discipline": "FIX THE NB5 MISTAKE: never judge alpha on a single split. Evaluate ALL 3 walk-forward splits + pooled; report market-neutral long-short Sharpe GROSS and NET of 0.2% round-trip cost; clustered CIs; multi-seed for learned models; pre-register the feature set; use each test split once. SIGN-K1 defines the alpha verdict.",
+  "env": "Use .venv-xpu. D1 = data/processed/ashares_tushare_v1.parquet (OHLCV + pct_chg + amount + industry, 2022-2026). Reuse src/onset/candle_geometry + candle_pattern, src/train_tcn_wf (SPLITS, select_feature_columns, build_anchor_sequences), src/identify/neutral_targets, src/evaluation/onset_eval (clustered_bootstrap), src/onset/run_candle_ablation feature-building. wf_samples exist only for 2025 splits; for 2023/24 windows sample test anchors directly from D1.",
   "acceptanceCriteria": [
     "verifyCommand (pytest tests/algo) passes",
-    "Method tasks ship a hermetic test (synthetic, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/candle/; findings recorded, never gated (SIGN-R1)",
-    "REAL eval covers ALL 3 splits + pooled, market-neutral, with GROSS and NET-of-cost long-short Sharpe + clustered CIs (SIGN-K1)",
-    "Point-in-time: candle features use only bars ending strictly before the target date",
+    "Method tasks ship a hermetic test (synthetic, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/deploy/; findings (incl. a collapse to null) recorded, never gated (SIGN-R1)",
+    "All tradability metrics are LONG-ONLY top-K market-excess, NET of the realistic A-share cost model (SIGN-D1)",
     "$0 new LLM cost"
   ],
   "tasks": [
     {
-      "id": "K1",
-      "title": "Candle geometry + relative-position feature builder",
-      "deliverable": "src/onset/candle_geometry.py",
-      "test": "tests/algo/test_candle_geometry.py",
-      "rationale": "Per-bar scale-free candle geometry + rolling relative-position features over the prior window -- the parametric, learnable form of the V7c expert rules.",
+      "id": "LO1",
+      "title": "Long-only top-K market-excess metric",
+      "deliverable": "src/onset/long_only.py",
+      "test": "tests/algo/test_long_only.py",
+      "rationale": "A-shares cannot be shorted; the tradable object is a long-only top-K basket and its EXCESS over the market (cross-sectional mean) per date.",
       "acceptanceCriteria": [
-        "per-bar geometry on an OHLCV frame: body=(C-O)/range, upper_wick, lower_wick, close_loc=(C-L)/(H-L), range_over_atr, gap vs prior close (all scale-free, NaN-safe for range=0)",
-        "rolling relative-position features over prior N bars: close percentile in prior-N high-low range, breakout flag (C > max prior-N high), dist-from-prior-N-low in ATR units, consecutive higher-lows count, volume ratio recent vs prior-N mean, compression (recent range / prior-N range)",
-        "hermetic synthetic OHLCV test: features finite, scale-invariant (scaling all prices leaves geometry unchanged), breakout flag correct on a constructed breakout"
+        "long_only_excess(df, sig, ret='_fwd_r5', date='trade_date', k_frac=0.1) -> per-date (mean ret of top-K by sig) - (cross-sectional mean ret) = long-only market excess; series over dates",
+        "returns gross mean per-period, annualized Sharpe, and a date-block bootstrap 95% CI",
+        "hermetic synthetic test: a signal correlated with ret gives positive excess; random gives CI spanning 0"
       ],
-      "priority": 1,
-      "passes": true,
-      "notes": "DONE: src/onset/candle_geometry.py (per_bar_geometry + relative_position + candle_features + panel wrapper; scale-invariant, point-in-time). 3 hermetic tests green (finite, scale-invariance, breakout flag)."
+      "priority": 1, "passes": false, "notes": "Long-only excess = top-K basket return minus the equal-weight market that date (the realistic, shortable-free alpha)."
     },
     {
-      "id": "K2",
-      "title": "Dynamic 3-12 bar pattern assembler (flat features + sequence)",
-      "deliverable": "src/onset/candle_pattern.py",
-      "test": "tests/algo/test_candle_pattern.py",
-      "rationale": "Assemble K1 features over the recent window into (a) a flat hand-engineered vector (recent 1-3 bars geometry + their relative position vs prior 3-9) for LightGBM, and (b) a [W, n_geom] sequence for the learned encoder.",
+      "id": "COST1",
+      "title": "Realistic A-share cost / constraint model",
+      "deliverable": "src/onset/ashare_cost.py",
+      "test": "tests/algo/test_ashare_cost.py",
+      "rationale": "Replace the crude 0.4%/period: A-share has asymmetric stamp duty (sell-only ~0.05% since Aug 2023), commission (~0.025%/side), slippage, T+1 (no same-day sell), and 10% price limits (cannot buy at limit-up).",
       "acceptanceCriteria": [
-        "anchor_features(panel, anchor_keys, recent=3, prior=9) -> flat feature frame per anchor (point-in-time: bars strictly before target date)",
-        "anchor_sequences(panel, anchor_keys, window) -> [N, W, n_geom] geometry sequence + valid mask (reuse build_anchor_sequences pattern)",
-        "hermetic synthetic test: shapes correct; point-in-time respected (no bar on/after the target date used)"
+        "round_trip_cost(commission=0.00025, stamp_sell=0.0005, slippage=0.0005) -> buy_cost + sell_cost (stamp on sell only); default ~0.2% round-trip",
+        "enterable(df, pct_chg='pct_chg', limit=9.8) -> boolean mask excluding would-be limit-up entries (cannot buy)",
+        "net_excess(gross_excess_series, round_trip) subtracts cost per holding period",
+        "hermetic test: cost lowers net; stamp applies to sell only; limit-up bars flagged un-enterable"
       ],
-      "priority": 2,
-      "passes": true,
-      "notes": "DONE: src/onset/candle_pattern.py (anchor_features flat + anchor_sequences, reuse build_anchor_sequences). 2 hermetic tests green incl point-in-time (future bars do not leak)."
+      "priority": 2, "passes": false, "notes": "Keep parametric + documented; defaults reflect 2025 A-share retail costs."
     },
     {
-      "id": "K3",
-      "title": "REAL ($0): hand-engineered candle features -> LightGBM, all-split market-neutral cost-aware",
-      "deliverable": "src/onset/run_candle_lgbm.py",
-      "test": "tests/algo/test_run_candle_lgbm_smoke.py",
-      "rationale": "Honest alpha test, path A. Does the candle-geometry/relative-position vector predict the market-neutral forward return out-of-sample, surviving cost across all splits?",
+      "id": "LO2",
+      "title": "REAL ($0): factors+candle LONG-ONLY net-excess, all-split go/no-go",
+      "deliverable": "src/onset/run_long_only.py",
+      "test": "tests/algo/test_run_long_only_smoke.py",
+      "rationale": "The decisive test. Does the factors+candle signal still produce a positive, cost-surviving LONG-ONLY market-excess across all splits once shorting is removed?",
       "acceptanceCriteria": [
-        "for each split: train LGBM on the split train window candle features, predict the split's wf_samples test anchors",
-        "market-neutral target (neutral_targets); report per-split AND pooled: market-neutral RankIC + long-short Sharpe GROSS and NET of 0.2% round-trip + clustered CIs",
-        "writes results/candle/lgbm.json; hermetic smoke green; real run executed + committed; verdict per SIGN-K1 recorded in progress.md",
+        "reuse run_candle_ablation feature-building to train factors+candle LGBM per split; predict each split's test anchors (exclude un-enterable limit-up entries via COST1)",
+        "report per-split AND pooled long-only net market-excess: mean/period, annualized Sharpe, clustered CI (LO1 + COST1)",
+        "writes results/deploy/long_only.json; hermetic smoke green; real run executed + committed; go/no-go verdict (SIGN-D1) recorded in progress.md",
         "$0"
       ],
-      "priority": 3,
-      "passes": true,
-      "notes": "DONE+REAL. FINDING: candle features give pooled market-neutral RankIC +0.039 [+0.016,+0.065] (EXCLUDES 0 -- strongest cross-sectional signal yet). But tradable: pooled NET long-short Sharpe 0.54, net mean CI [-0.003,+0.009] spans 0; split3 net negative. SIGN-K1: net>0 in 2/3 splits but pooled net CI spans 0 -> NOT alpha1 (small real signal, not cost-surviving/regime-stable). lgbm.json committed."
+      "priority": 3, "passes": false, "notes": "Depends LO1, COST1. Deployable only if pooled net-excess CI excludes 0 AND >=2/3 splits positive."
     },
     {
-      "id": "K4",
-      "title": "REAL (XPU, $0): learned candle-sequence encoder, same honest eval",
-      "deliverable": "src/onset/run_candle_seq.py",
-      "test": "tests/algo/test_run_candle_seq_smoke.py",
-      "rationale": "Path B: feed the candle geometry sequence (last ~12 bars) into the TCN / contrastive encoder; same all-split market-neutral cost-aware eval, multi-seed.",
+      "id": "ROB1",
+      "title": "REAL ($0): cross-period (2023/24) + liquidity + top-K robustness",
+      "deliverable": "src/onset/run_robustness.py",
+      "test": "tests/algo/test_run_robustness_smoke.py",
+      "rationale": "Only one 2025 period so far. Build 2023 and 2024 walk-forward windows from D1; add a liquidity haircut (trade only liquid names) and top-K sensitivity.",
       "acceptanceCriteria": [
-        "uses K2 anchor_sequences (geometry channels) + the existing encoder (tcn_cross_attn or contrastive_encoder), predicts market-neutral target",
-        "all-split + pooled, market-neutral RankIC + GROSS/NET long-short Sharpe + clustered CIs, >=3 seeds (report mean +/- across seeds)",
-        "writes results/candle/seq.json; hermetic smoke <30s green; real run executed + committed; verdict recorded",
+        "define 2023 and 2024 train/test windows; sample test anchors from D1 (valid fwd_r5); re-evaluate factors+candle long-only net-excess",
+        "liquidity haircut: restrict to top-liquidity names by amount; top-K sensitivity k in {0.05, 0.1, 0.2}",
+        "writes results/deploy/robustness.json; hermetic smoke green; real run + committed; whether the edge holds across years recorded",
         "$0"
       ],
-      "priority": 4,
-      "passes": true,
-      "notes": "DONE+REAL(XPU,328s,3 splits x3 seeds). FINDING: learned candle-seq pooled market-neutral RankIC +0.062 [+0.036,+0.089] (excludes 0, > K3 flat +0.039); pooled NET long-short Sharpe 0.63, net mean CI [-0.0022,+0.0099] spans 0 -> not cost-surviving. Same verdict as K3. seq.json committed."
+      "priority": 4, "passes": false, "notes": "Depends LO1, COST1, LO2. Pure tabular model -> no leakage concern adding earlier windows."
     },
     {
-      "id": "K5",
-      "title": "REAL ($0): ablation -- candle geometry vs smoothed-factor baseline",
-      "deliverable": "src/onset/run_candle_ablation.py",
-      "test": "tests/algo/test_run_candle_ablation_smoke.py",
-      "rationale": "Does candle geometry ADD anything over the 165 smoothed factors? Train LGBM on (factors) vs (factors + candle) vs (candle only); same honest eval.",
+      "id": "CAP1",
+      "title": "Capacity estimate (ADV-based)",
+      "deliverable": "src/onset/capacity.py",
+      "test": "tests/algo/test_capacity.py",
+      "rationale": "How much capital before the edge decays? Estimate from the average daily traded value (amount) of the top-K names and a participation cap.",
       "acceptanceCriteria": [
-        "three feature sets, all-split market-neutral cost-aware eval; report incremental long-short Sharpe (net) of adding candle geometry",
-        "writes results/candle/ablation.json; hermetic smoke green; real run + committed; finding recorded",
-        "$0"
+        "capacity(top_names_adv, participation=0.05, k_names) -> rough max capital (sum of participation*ADV across the basket)",
+        "hermetic test on synthetic ADV"
       ],
-      "priority": 5,
-      "passes": true,
-      "notes": "DONE+REAL (after fixing a _fwd_r5 leak in factor_cols that gave RankIC 0.825). FINDING: candle geometry is COMPLEMENTARY to smoothed factors -- pooled net long-short Sharpe factors 0.81 -> factors+candle 1.76 (incremental +0.95), RankIC 0.061 -> 0.083. candle-alone weak/negative net. ablation.json committed. Per-split SIGN-K1 verdict in K6."
+      "priority": 5, "passes": false, "notes": "Reads amount (turnover value) from D1 in the real path; the function itself is pure."
     },
     {
-      "id": "K6",
-      "title": "Synthesis + explicit alpha1 verdict",
-      "deliverable": "src/onset/summarize_candle.py",
-      "test": "tests/algo/test_summarize_candle_smoke.py",
-      "rationale": "Aggregate K3/K4/K5 into a table + figure and apply the SIGN-K1 alpha verdict rule explicitly (real edge vs overfit vs null).",
+      "id": "DSYN",
+      "title": "Deployability verdict + synthesis",
+      "deliverable": "src/onset/summarize_deploy.py",
+      "test": "tests/algo/test_summarize_deploy_smoke.py",
+      "rationale": "Aggregate LO2 + ROB1 + CAP1 into the final deployability verdict + table + figure.",
       "acceptanceCriteria": [
-        "reads results/candle/* -> results/candle/summary.md + paper/sections/figures/candle_alpha_summary.png",
-        "computes the alpha1 verdict: REAL only if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe > 0 in >=2/3 splits; else 'overfit/single-split' or 'null'",
+        "reads results/deploy/* -> results/deploy/summary.md + paper/sections/figures/deploy_summary.png",
+        "verdict (SIGN-D1): DEPLOYABLE only if long-only net-excess pooled CI excludes 0 AND >=2/3 splits positive AND holds across >=1 additional year; else 'statistically-real-but-not-tradable' or 'collapsed'",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 6,
-      "passes": true,
-      "notes": "DONE+REAL: src/onset/summarize_candle.py -> summary.md + figure. VERDICT: no confirmed alpha1; factors+candle PROMISING (pooled net CI excludes 0, Sharpe 1.76, incremental +0.95) but per-split unconfirmed; candle-only null after cost. full gate 67 passed."
+      "priority": 6, "passes": false, "notes": "Depends LO2, ROB1, CAP1."
     }
   ]
 }

@@ -109,3 +109,7 @@ alpha1 VERDICT (SIGN-K1): NO confirmed tradable alpha. candle-only (K3/K4) = nul
 ## DECISIVE per-split check (Step 2) -- factors+candle PASSES SIGN-K1
 factors+candle: pooled net long-short Sharpe 1.76, net mean CI [+0.0049,+0.0179] EXCLUDES 0; per-split net Sharpe split1 +3.22 / split2 +0.85 / split3 +1.20 -> POSITIVE in 3/3 splits. SIGN-K1 verdict: REAL (alpha1). Mechanistically coherent: candle geometry rescues split2 (factors-only -0.67 -> +0.85), the C4-unstable quarter -- the relative-position normalization fixing non-stationarity as hypothesized. First signal in the project to clear the honest bar.
 BUT NOT YET DEPLOYABLE ALPHA -- binding caveats: (1) A-shares largely CANNOT be shorted, so the long-short is not directly tradable; the realistic test is LONG-ONLY top portfolio minus market. (2) cost model is a simple 0.4
+## NEW LINE (research/deployability) -- alpha1 deployability gauntlet
+Goal: force the SIGN-K1-passing factors+candle signal through real A-share constraints. (1) LONG-ONLY top-K market-excess (no shorting); (2) realistic cost model (asymmetric stamp duty / commission / slippage / T+1 / limit-up); (3) cross-period (2023/24 windows) + liquidity + top-K robustness + capacity. HONEST: long-only likely weaker -> genuine go/no-go. $0.
+Tasks: LO1 long-only metric -> COST1 A-share cost model -> LO2 REAL factors+candle long-only net-excess go/no-go; ROB1 REAL cross-period+liquidity+topK; CAP1 capacity; DSYN verdict. New SIGN-D1.
+Candlestick line merged to main + archived to prd_candlestick_done.json.
