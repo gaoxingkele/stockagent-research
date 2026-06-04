@@ -17,5 +17,5 @@ Incremental net Sharpe from adding candle geometry: **+0.95**
 |---|---|
 | candle_flat_lgbm (K3) | null / not cost-surviving |
 | candle_seq (K4) | null / not cost-surviving |
-| factors_plus_candle (K5) | PROMISING (pooled net CI excludes 0, per-split unconfirmed) |
-| factors_only (K5) | null |
+| factors_plus_candle (K5) | REAL (alpha1): pooled net CI excludes 0 AND net>0 in >=2/3 splits |
+| factors_only (K5) | null / not cost-surviving |

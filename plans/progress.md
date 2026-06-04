@@ -105,3 +105,7 @@ SIGN-K1: alpha ONLY if pooled NET long-short Sharpe CI excludes 0 AND net Sharpe
 
 ## COMPLETE (research/candlestick-onset)
 alpha1 VERDICT (SIGN-K1): NO confirmed tradable alpha. candle-only (K3/K4) = null after 0.4% cost (pooled net CI spans 0). BUT candle geometry is COMPLEMENTARY to smoothed factors: factors+candle pooled net long-short CI EXCLUDES 0 (Sharpe 1.76, RankIC 0.083), incremental +0.95 net Sharpe over factors -> labelled PROMISING-UNCONFIRMED (per-split net robustness not yet measured for that combo). Candle geometry also gives the strongest pooled market-neutral RankIC in the project (seq +0.062, factors+candle +0.083). DECISIVE NEXT: per-split net long-short of factors+candle (must be >0 in >=2/3 splits incl the C4-unstable split3) to clear the full SIGN-K1 bar.
+
+## DECISIVE per-split check (Step 2) -- factors+candle PASSES SIGN-K1
+factors+candle: pooled net long-short Sharpe 1.76, net mean CI [+0.0049,+0.0179] EXCLUDES 0; per-split net Sharpe split1 +3.22 / split2 +0.85 / split3 +1.20 -> POSITIVE in 3/3 splits. SIGN-K1 verdict: REAL (alpha1). Mechanistically coherent: candle geometry rescues split2 (factors-only -0.67 -> +0.85), the C4-unstable quarter -- the relative-position normalization fixing non-stationarity as hypothesized. First signal in the project to clear the honest bar.
+BUT NOT YET DEPLOYABLE ALPHA -- binding caveats: (1) A-shares largely CANNOT be shorted, so the long-short is not directly tradable; the realistic test is LONG-ONLY top portfolio minus market. (2) cost model is a simple 0.4

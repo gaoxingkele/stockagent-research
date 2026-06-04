@@ -50,10 +50,13 @@ def run_real() -> dict:
         lgbm["pooled"]["long_short"].get("net_mean_ci95"), _per_split_net(lgbm))
     out["verdicts"]["candle_seq (K4)"] = alpha_verdict(
         seq["pooled"]["long_short"].get("net_mean_ci95"), _per_split_net(seq))
+    def _abl_persplit(name):
+        ps = abl["by_set"][name].get("per_split_net_sharpe")
+        return list(ps.values()) if ps else None
     out["verdicts"]["factors_plus_candle (K5)"] = alpha_verdict(
-        abl["by_set"]["factors_plus_candle"].get("net_mean_ci95"), None)
+        abl["by_set"]["factors_plus_candle"].get("net_mean_ci95"), _abl_persplit("factors_plus_candle"))
     out["verdicts"]["factors_only (K5)"] = alpha_verdict(
-        abl["by_set"]["factors"].get("net_mean_ci95"), None)
+        abl["by_set"]["factors"].get("net_mean_ci95"), _abl_persplit("factors"))
 
     out["pooled_rank_ic"] = {
         "candle_flat": lgbm["pooled"]["rank_ic_market_neutral"]["mean"],

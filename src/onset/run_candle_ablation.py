@@ -57,6 +57,7 @@ def run_real() -> dict:
         return X.reshape(len(X), RECENT * len(FEATURE_COLS)), m
 
     sets = {"factors": [], "factors_plus_candle": [], "candle": []}
+    per_split_ls = {name: {} for name in sets}
     rng = np.random.default_rng(42)
     d1_idx = df.set_index(["ts_code", "trade_date"])
     for sid in (1, 2, 3):
@@ -80,6 +81,7 @@ def run_real() -> dict:
             pred = _lgbm(Xtr, tr["mkt_neutral"].values, Xte)
             w = wf[["trade_date", "_fwd_r5", "mkt_neutral"]].copy(); w["sig"] = pred
             sets[name].append(w)
+            per_split_ls[name][f"split{sid}"] = long_short(w)
 
     by_set = {}
     for name, parts in sets.items():
@@ -87,6 +89,8 @@ def run_real() -> dict:
         by_set[name] = {"rank_ic_market_neutral": clustered_bootstrap(
             _rank_ic, allp["sig"].values, allp["mkt_neutral"].values,
             allp["trade_date"].astype(str).values, n_boot=300), **long_short(allp)}
+    for name in by_set:
+        by_set[name]["per_split_net_sharpe"] = {k: v.get("net_sharpe") for k, v in per_split_ls[name].items()}
     out = {"by_set": by_set, "summary": summarize_ablation(by_set)}
     (ROOT / "results/candle").mkdir(parents=True, exist_ok=True)
     (ROOT / "results/candle/ablation.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
