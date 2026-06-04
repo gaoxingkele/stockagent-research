@@ -102,8 +102,8 @@
         "$0"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": "Depends COMBO1. NEVER report the best in-sample config as the result (SIGN-P1)."
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: NO config recovers an edge. Walk-forward-selected (best on TRAIN) config OOS test Sharpe -2.14 (2024) / -2.66 (2025); even the best train config has negative train net mean. The onset+filter selection pool is robustly NEGATIVE across all knobs, in-sample and OOS. optimize.json committed."
     },
     {
       "id": "PSYN",

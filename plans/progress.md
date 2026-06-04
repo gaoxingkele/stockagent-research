@@ -137,3 +137,5 @@ Deployability line merged to main + archived to prd_deployability_done.json.
   - Next: COMBO1, OPT1, PSYN.
 - **COMBO1 DONE+REAL** (artifact caught): Sharpe decomposition shows timed/combo Sharpe >> buy-hold, but it is a Sharpe-INFLATION artifact (cash during volatile down periods cuts vol) + small-sample noise (40-48 pts, 2025 timed 5.78), CONTRADICTING robust TIM2 (timing wash) + FILT2 (selection negative). On the robust mean basis: no reliable edge. PSYN uses the mean criterion, not Sharpe.
   - Next: OPT1 (walk-forward knob sweep), PSYN (verdict).
+- **OPT1 DONE+REAL**: walk-forward knob optimization -> NO config recovers an edge. WF-selected OOS test Sharpe -2.14 / -2.66; best train config still negative. Selection pool robustly NEGATIVE across all knobs, in-sample AND OOS.
+  - Next: PSYN final verdict.
