@@ -119,3 +119,4 @@ Candlestick line merged to main + archived to prd_candlestick_done.json.
   - Next: ROB1 cross-period + liquidity + topK, CAP1, DSYN.
 - **ROB1 DONE+REAL** (cross-period KILL SHOT): the long-only factors+candle edge that looked good on 2025 (LO2 Sharpe 1.10) is NEGATIVE in 2023 (net Sharpe -0.37) AND 2024 (-0.36); liquid-only -0.32; top-K {5,10,20%} all negative. holds_across_years=FALSE -> the 2025 result is period-specific, NOT a stable deployable edge. SIGN-D1 cross-period gate FAILED. Discipline caught what a single-year backtest would have missed.
   - Next: CAP1 (moot but completes backlog), DSYN final verdict (NOT deployable / collapsed cross-period).
+- **CAP1 DONE**: src/onset/capacity.py -- ADV-based capacity estimate (participation*sum ADV). 2 hermetic tests green. (Moot given ROB1 non-deployable, but completes the backlog.)

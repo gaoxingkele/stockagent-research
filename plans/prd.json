@@ -85,8 +85,8 @@
         "hermetic test on synthetic ADV"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": "Reads amount (turnover value) from D1 in the real path; the function itself is pure."
+      "passes": true,
+      "notes": "DONE: src/onset/capacity.py (participation*sum(ADV) capacity estimate). 2 hermetic tests green."
     },
     {
       "id": "DSYN",
