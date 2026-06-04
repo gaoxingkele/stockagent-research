@@ -115,3 +115,5 @@ Tasks: LO1 long-only metric -> COST1 A-share cost model -> LO2 REAL factors+cand
 Candlestick line merged to main + archived to prd_candlestick_done.json.
 - **LO1 DONE** (branch research/deployability): `src/onset/long_only.py` -- long-only top-K market-excess (top-K minus equal-weight market per date) + summarize_excess (annualized Sharpe + block CI, cost-aware). 3 hermetic tests green.
 - **COST1 DONE**: `src/onset/ashare_cost.py` -- realistic A-share round-trip cost ~0.2% (stamp on sell only) + enterable (excludes limit-up entries) + net_excess. 3 hermetic tests green.
+- **LO2 DONE+REAL** (decisive go/no-go): factors+candle LONG-ONLY survived removing the short leg + realistic cost. pooled net market-excess annualized Sharpe 1.10, mean +0.71%/period, CI [+0.0011,+0.0138] EXCLUDES 0; per-split net mean +1.17/+0.52/+0.45% -> positive 3/3 (only split1 individually significant, per-split CIs wide). PASS go on the long-only gate. FULL deployable verdict still pending ROB1 (cross-period 2023/24). long_only.json committed.
+  - Next: ROB1 cross-period + liquidity + topK, CAP1, DSYN.
