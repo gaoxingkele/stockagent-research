@@ -86,7 +86,7 @@
         "hermetic smoke green; real run + committed"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Depends MI2, MI3."
     }
   ]

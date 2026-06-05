@@ -1,0 +1,14 @@
+{
+  "verdict": "BUILD-THE-MOTIF-MODEL -- conditional information is permutation-significant AND cross-period stable. The trend/vol regime is a genuine 'transcription factor' that activates the candle 'promoter'.",
+  "build_motif_model": true,
+  "n_interaction_hits": 52,
+  "n_stable": 6,
+  "n_tested": 6,
+  "caveats": [
+    "p-values floor at 1/n_perm because n is large (~1.5-2e5): they prove the interaction is >0, NOT that it is large. The effect SIZE (cond_mi ~0.006 nats, correlation-equivalent ~0.07-0.14) is the honest magnitude.",
+    "INFORMATION != net-of-cost RETURN. The deployability and production-edge lines already showed the long-only, cost-aware return edge collapses cross-period. Conditional information is necessary, not sufficient, for tradable alpha.",
+    "Mutual information is SIGN-BLIND: part of this conditional information may describe downside/continuation risk in down-trends rather than exploitable upside.",
+    "The motif model's hard, unsolved job is to convert this stable conditional information into a MONOTONE, costable, long-only signal -- which prior lines suggest is the binding constraint."
+  ],
+  "figure": "D:\\aicoding\\stockagent-research\\paper\\sections\\figures\\motif_mi_summary.png"
+}
