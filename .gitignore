@@ -40,6 +40,8 @@ results/*
 !results/deploy/**
 !results/production/
 !results/production/**
+!results/motif/
+!results/motif/**
 experiments/runs/*
 !experiments/runs/.gitkeep
 
