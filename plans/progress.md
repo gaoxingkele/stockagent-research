@@ -183,3 +183,10 @@ Hermetic test proves the point: a SIGN-BLIND synthetic (Var[y|x] depends on x, E
 
 ## 2026-06-06 RGT1 done -- simplest regime-gated long-only signal
 src/onset/regime_gate.py: regime_gated_excess (per-date long-only top-K by feature via long_only_excess, ZERO on out-of-regime dates, net of round-trip A-share cost), gated_vs_ungated (isolates the regime's marginal contribution). Reuses long_only + ashare_cost (no reimplementation). Point-in-time. 3/3 green. Next: TRD1 REAL directional-vs-sign-blind diagnosis.
+
+## 2026-06-06 TRD1 done -- directional-vs-sign-blind diagnosis (MIXED, leaning positive)
+src/onset/run_tradability.py applies SGN1 to the 6 MI3 stable winners. FINDING (VERDICT: SOME-DIRECTIONAL):
+- best_mono = 1.000 for ALL top features -- the CONDITIONAL MEAN of fwd_r5 is PERFECTLY MONOTONE across feature quantile buckets within the trend regime. This is the key positive: it is NOT pure sign-blind risk; there is a real, monotone directional core.
+- best_state Spearman slope ~0.08-0.10 (appreciable for cross-sectional selection).
+- BUT directional_fraction ~0.37-0.43: only ~40% of the feature's predictive DISPERSION is in the mean; ~60% is in the variance (sign-blind risk). close_pct_prior(0.43) and close_loc(0.40) clear the 0.4 tradable bar; dist_low_atr/onset_score/body(0.37-0.39) just miss.
+READING: the stable conditional info is a MIX -- a genuine monotone directional component plus a larger risk component. MI alone could not have told these apart. DECISIVE next test = TRD2: does the monotone directional core survive as net-of-cost, long-only, cross-period return? (prior lines warn A-share cost ~0.2% + non-stationarity usually eats slopes this size).

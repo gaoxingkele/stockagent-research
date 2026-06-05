@@ -55,7 +55,7 @@
         "$0"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Depends SGN1. Reads results/motif/mi_stability.json for the hit list."
     },
     {
