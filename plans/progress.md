@@ -143,3 +143,8 @@ Deployability line merged to main + archived to prd_deployability_done.json.
 
 ## COMPLETE (research/production-edge)
 FINAL: the DOCUMENTED V12.31 rules (onset + V7c filters + simplified disaster timing) do NOT reproduce the production Sharpe 2.20. Timing is a wash; selection is robustly NEGATIVE (all years, all knobs, OOS); the reproduced disaster filter barely fires (concept signals C2/C3 unimplemented). The real edge lives in parts NOT in the released knowledge: the FULL disaster composite, the actual r20_pred predictive model, execution/risk/discretion, and production parameter calibration. The released expert prompt is INSUFFICIENT to reproduce the alpha.
+
+## NEW LINE (research/onset-motif) -- information-theoretic go/no-go for the onset-motif upgrade
+Core: we proved MARGINAL I(pattern; fwd_r) ~ 0. The promoter-needs-transcription-factor hypothesis = the info is CONDITIONAL: I(pattern; fwd_r | regime) > 0. This line MEASURES conditional vs marginal MI with a within-regime PERMUTATION null (MI is positively biased -> raw MI is not evidence), and tests cross-period stability. Conditional MI > null & stable -> build the graph/point-process onset-motif model; else the onset concept is information-theoretically exhausted.
+Tasks: MI1 estimators+permutation null -> REG1 regime states; MI2 REAL marginal-vs-conditional MI probe (decisive); MI3 REAL cross-period MI stability; MSYN go/no-go verdict. All $0 (pure measurement, no model). New SIGN-M1.
+Production-edge line merged to main + archived to prd_production_edge_done.json.

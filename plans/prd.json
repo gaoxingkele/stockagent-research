@@ -1,124 +1,83 @@
 {
   "repo": "gaoxingkele/stockagent-research",
-  "branchName": "research/production-edge",
-  "goal": "Test the RIGHT object: V12.31's edge (real alpha +2.236pp/month, Sharpe 2.20) is NOT the broad cross-sectional onset signal (we tested that, null) but the parts the academic abstraction discards -- (1) DISASTER-MONTH TIMING (sit out the bad regimes), (2) EXTREME FILTERING to a tiny high-conviction long-only pool (V7c iron rules), (3) ASYMMETRIC downside avoidance (never short; exclude bearish/overheated/worst-industry/zombie names). Decompose the Sharpe into TIMING vs SELECTION, reproduce a production-faithful long-only strategy, optimize its few knobs WALK-FORWARD (no in-sample tuning), and judge deployability cross-period under the existing honest discipline (leakage-free, cluster-robust, long-only net-of-cost, cross-period = SIGN-D1). HONEST: even this may not reproduce the production Sharpe (execution/discretion not captured; disaster filter is a simplified reproduction) -- but it finally targets where the edge actually lives. $0 (reuse D1 + disaster_filter + expert_pattern).",
+  "branchName": "research/onset-motif",
+  "goal": "The decisive INFORMATION-THEORETIC go/no-go for upgrading the onset 'promoter' into a context-conditional 'onset motif'. We proved the MARGINAL mutual information I(pattern; forward_return) ~ 0. The promoter-needs-transcription-factor hypothesis says the information is CONDITIONAL: I(pattern; fwd_r | regime) > 0 even when the marginal is ~0. This line MEASURES that, with a permutation null (MI estimators are positively biased, so significance MUST come from a within-regime permutation test, not the raw MI). If conditional MI exceeds its permutation null while marginal does not -> there is conditional information worth modeling (build the graph/point-process motif model next). If conditional MI is ALSO at the null -> the onset concept is information-theoretically EXHAUSTED and no architecture can save it (a definitive answer). Also test whether any conditional MI is STABLE cross-period (the non-stationarity check). $0 (reuse candle features + D1; pure measurement, NO model).",
   "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
-  "env": "Use .venv-xpu. D1 = data/processed/ashares_tushare_v1.parquet (OHLCV + pct_chg + amount + industry, 2022-2026). Reuse src/onset/disaster_filter (compute_daily_market_signals + compute_disaster_signals -> is_disaster_month), src/onset/expert_pattern (bullish_onset_rules, bearish_onset_avoidance_rules), src/identify/neutral_targets, src/onset/long_only + ashare_cost (cost-aware long-only excess), src/onset/run_robustness window logic (2023/24 cross-period), src/evaluation/onset_eval.",
-  "discipline": "Carry ALL prior SIGNs. SIGN-P1 (new): the object under test is the PRODUCTION MECHANISM (timing + extreme filter + asymmetry), NOT a broad cross-sectional factor; always report the Sharpe DECOMPOSITION (timing vs selection). Any optimization is WALK-FORWARD (knobs chosen on TRAIN windows, judged on TEST) -- never in-sample. Deployable verdict per SIGN-D1 (long-only, net realistic cost, cross-period).",
+  "env": "Use .venv-xpu. Reuse src/onset/candle_geometry (FEATURE_COLS pattern features), src/onset/candle_pattern (anchor features), D1 (_fwd_r5, pct_chg, amount). Regime variables built in REG1 (trend / volatility / disaster via disaster_filter).",
+  "discipline": "Carry ALL prior SIGNs. SIGN-M1 (new): MI estimators are positively BIASED; NEVER report raw MI as evidence -- significance comes ONLY from a within-regime/stratum PERMUTATION null (shuffle the target within regime strata, breaking conditional dependence while preserving marginals). Report MI relative to the permutation null + a p-value. Use rank/quantile binning (robust). Conditional MI is the decisive object; marginal MI is the control.",
   "acceptanceCriteria": [
     "verifyCommand (pytest tests/algo) passes",
-    "Method tasks ship a hermetic test (synthetic, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/production/; findings (incl. nulls) recorded, never gated (SIGN-R1)",
-    "Tradability = LONG-ONLY, net of realistic A-share cost, reported with timing-vs-selection decomposition + cross-period (SIGN-P1/D1)",
+    "Method tasks ship a hermetic test (synthetic with KNOWN (conditional) information, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/motif/; findings (incl. a clean null) recorded, never gated (SIGN-R1)",
+    "Every MI claim carries a permutation-null p-value (SIGN-M1); no raw-MI claims",
     "$0 new LLM cost"
   ],
   "tasks": [
     {
-      "id": "TIM1",
-      "title": "Timing overlay + Sharpe decomposition (timing vs selection)",
-      "deliverable": "src/onset/timing_overlay.py",
-      "test": "tests/algo/test_timing_overlay.py",
-      "rationale": "A market-timing overlay (hold when in-market, cash when out) and a decomposition of total Sharpe into the part from TIMING (the in/out mask) vs from SELECTION (cross-sectional pick).",
+      "id": "MI1",
+      "title": "MI estimators: marginal, conditional, + within-stratum permutation null",
+      "deliverable": "src/onset/mutual_info.py",
+      "test": "tests/algo/test_mutual_info.py",
+      "rationale": "Binned (rank-quantile) MI for marginal I(X;Y) and conditional I(X;Y|Z) (Z discretized into states, MI within each, weighted), with a permutation null that shuffles Y WITHIN Z-strata so significance is unbiased.",
       "acceptanceCriteria": [
-        "timed_series(market_ret_by_date, in_market_by_date) -> strategy return (market when in, 0 when out)",
-        "decompose_sharpe(market_ret_by_date, in_market_by_date, selection_excess_by_date) -> {buy_hold, timed, timed_plus_selected} annualized Sharpe + the incremental Sharpe from timing and from selection",
-        "hermetic test: timing out the negative-return dates raises Sharpe; selection adds on top"
+        "mutual_info(x, y, bins=8) -> binned MI (nats) using quantile bins",
+        "conditional_mi(x, y, z_states, bins=8) -> sum_z P(z) * MI(x,y | z=state)",
+        "perm_pvalue(x, y, z_states, n_perm=500, conditional=True) -> p-value from shuffling y within each z-stratum",
+        "hermetic synthetic: X carries info about Y ONLY given Z (e.g. Y = Z*X + noise) -> conditional MI >> marginal MI, and conditional perm p-value is small while marginal p-value is large"
       ],
-      "priority": 1,
-      "passes": true,
-      "notes": "DONE: src/onset/timing_overlay.py (timed_series + decompose_sharpe: buy_hold vs timed vs timed+selected, incremental timing/selection). 3 hermetic tests green."
+      "priority": 1, "passes": false, "notes": "Rank/quantile binning; permutation within strata is the crux (SIGN-M1)."
     },
     {
-      "id": "TIM2",
-      "title": "REAL ($0): disaster-month timing test -- is the Sharpe from timing?",
-      "deliverable": "src/onset/run_timing.py",
-      "test": "tests/algo/test_run_timing_smoke.py",
-      "rationale": "The decisive timing test. Does avoiding disaster months (per disaster_filter) improve the equal-weight market Sharpe over buy-and-hold, across the full 2022-2025 history?",
+      "id": "REG1",
+      "title": "Regime variable builder (trend / volatility / disaster), discretized",
+      "deliverable": "src/onset/regimes.py",
+      "test": "tests/algo/test_regimes.py",
+      "rationale": "Per-date regime states (point-in-time) to condition on: trend (trailing market return sign), volatility (rolling market vol tercile), disaster (disaster_filter).",
       "acceptanceCriteria": [
-        "compute is_disaster_month from D1 (disaster_filter); build per-date equal-weight market forward return",
-        "compare buy-and-hold vs disaster-timed (cash in disaster months) annualized Sharpe, net of (low) timing cost, per-year + pooled, with block CI",
-        "writes results/production/timing.json; hermetic smoke green; real run + committed; finding recorded (does timing carry the Sharpe?)",
+        "trend_state, vol_state (terciles), disaster_state from a per-date market series / D1; all point-in-time (shift)",
+        "each returns an integer state per date, mapped onto the anchor rows",
+        "hermetic synthetic test: states are point-in-time (no future bar used) and take the expected values on a constructed series"
+      ],
+      "priority": 2, "passes": false, "notes": "Reuse disaster_filter; trend = trailing-return sign (shifted); vol = rolling std tercile."
+    },
+    {
+      "id": "MI2",
+      "title": "REAL ($0): marginal vs conditional MI of the onset pattern on A-shares",
+      "deliverable": "src/onset/run_mi_probe.py",
+      "test": "tests/algo/test_run_mi_probe_smoke.py",
+      "rationale": "THE decisive probe. Estimate I(pattern; fwd_r) and I(pattern; fwd_r | regime) for each regime variable, with permutation p-values. Pattern = candle features (per-feature and a combined score); fwd_r = _fwd_r5 (and market-neutral residual).",
+      "acceptanceCriteria": [
+        "build candle pattern features (candle_geometry) + a combined onset score; targets _fwd_r5 and market-neutral residual",
+        "for each regime (trend/vol/disaster): marginal MI + conditional MI + permutation p-values; report conditional-minus-marginal and whether conditional clears its null",
+        "writes results/motif/mi_probe.json; hermetic smoke green; real run executed + committed; the go/no-go finding recorded in progress.md",
         "$0"
       ],
-      "priority": 2,
-      "passes": true,
-      "notes": "DONE+REAL. FINDING: timing edge NOT reproducible with available signals. (a) disaster_filter reproduction BROKEN: fires 0.5%, ZERO in 2022 bear (concept signals C2/C3 are TODO). (b) standard trend regime is net wash (pooled buy_hold 0.38 -> timed 0.46, +0.08, CI spans 0) and regime-dependent: helps 2022(-0.42->+0.08)/2024(+0.20->+0.60), hurts 2023/2025. -> the hypothesis that the Sharpe is mostly timing is NOT supported with these signals; production timing needs the full disaster composite. timing.json committed."
+      "priority": 3, "passes": false, "notes": "Depends MI1, REG1. SIGN-M1: only permutation-null-significant conditional MI counts."
     },
     {
-      "id": "FILT1",
-      "title": "Extreme-filter high-conviction pool builder (V7c iron rules)",
-      "deliverable": "src/onset/extreme_filter.py",
-      "test": "tests/algo/test_extreme_filter.py",
-      "rationale": "Build the tiny high-conviction long-only pool: onset rules (expert_pattern) AND the V7c-style hard filters -- exclude overheated (past_r5>+8%), zombies (flat MA60), worst-10%-industry by 60d momentum, keep only the top-percentile by a score.",
+      "id": "MI3",
+      "title": "REAL ($0): cross-period stability of conditional MI (non-stationarity)",
+      "deliverable": "src/onset/run_mi_stability.py",
+      "test": "tests/algo/test_run_mi_stability_smoke.py",
+      "rationale": "Even if conditional MI > null pooled, is it STABLE across 2023/2024/2025? Information that only appears in one year is not a basis for a motif model.",
       "acceptanceCriteria": [
-        "pool_mask(panel_with_features, score_col, top_pct=0.05) -> boolean per-anchor pool membership combining onset + hard filters",
-        "individual filters exposed (overheated, zombie, industry_momentum_rank) and point-in-time",
-        "hermetic synthetic test: filters exclude the constructed overheated/zombie/worst-industry rows; pool is a small subset"
-      ],
-      "priority": 3,
-      "passes": true,
-      "notes": "DONE: src/onset/extreme_filter.py (pool_mask = onset(expert_pattern) & not-overheated & not-zombie & not-worst-industry & top-pct). 3 hermetic tests green. (Fixed bullish_onset_rules index-alignment by sorting+reset before calling.)"
-    },
-    {
-      "id": "FILT2",
-      "title": "REAL ($0): edge of the extreme-filtered high-conviction pool",
-      "deliverable": "src/onset/run_filtered_pool.py",
-      "test": "tests/algo/test_run_filtered_pool_smoke.py",
-      "rationale": "Does the small filtered pool have a long-only edge the broad cross-section lacked? Small N, but that is the real product.",
-      "acceptanceCriteria": [
-        "per date, the filtered pool's long-only market-excess forward return; all-split + cross-period (2023/24); net of realistic cost; clustered CI; report pool size per date",
-        "writes results/production/filtered_pool.json; hermetic smoke green; real run + committed; finding recorded",
+        "per-year conditional MI + permutation p-value for the best regime from MI2",
+        "writes results/motif/mi_stability.json; hermetic smoke green; real run + committed; whether conditional information is stable across years recorded",
         "$0"
       ],
-      "priority": 4,
-      "passes": true,
-      "notes": "DONE+REAL. FINDING: the reproduced onset+filter selection pool UNDERPERFORMS the market consistently: long-only market-excess Sharpe 2023 -2.62 / 2024 -2.14 / 2025 -2.66, pooled -1.83 (CI excludes 0 on the negative side); 0/3 positive years. The SELECTION component as reproduced is a NEGATIVE long-only edge. (Lenient settings score>=2/top20%; stricter swept in OPT1.) filtered_pool.json committed."
+      "priority": 4, "passes": false, "notes": "Depends MI2. The same non-stationarity discipline as ROB1 (SIGN-D1/K1) applied to information, not return."
     },
     {
-      "id": "COMBO1",
-      "title": "REAL ($0): production-faithful strategy = timing x filtering x asymmetry, full validation",
-      "deliverable": "src/onset/run_production_faithful.py",
-      "test": "tests/algo/test_run_production_faithful_smoke.py",
-      "rationale": "Combine: in-market only when not disaster-month; hold the extreme-filtered long-only pool; exclude downside names. Evaluate long-only net-of-cost, all-split + cross-period (SIGN-D1).",
+      "id": "MSYN",
+      "title": "Information-theoretic go/no-go verdict + synthesis",
+      "deliverable": "src/onset/summarize_motif.py",
+      "test": "tests/algo/test_summarize_motif_smoke.py",
+      "rationale": "Aggregate MI2 + MI3 into the decisive verdict: is there permutation-significant, cross-period-stable CONDITIONAL information that justifies building the onset-motif model -- or is the onset concept information-theoretically exhausted?",
       "acceptanceCriteria": [
-        "combined strategy return series; long-only net market-excess + absolute Sharpe; per-split + 2025 pooled + 2023/24 cross-period",
-        "Sharpe decomposition: buy-hold vs +timing vs +timing+filter (TIM1)",
-        "writes results/production/combo.json; hermetic smoke green; real run + committed; SIGN-D1 deployable verdict recorded",
-        "$0"
-      ],
-      "priority": 5,
-      "passes": true,
-      "notes": "DONE+REAL. FINDING (with caveat): the Sharpe decomposition shows timed/combo Sharpe >> buy-hold (pooled timed 1.95 vs TIM2 0.46), BUT this is a Sharpe-INFLATION artifact -- sitting in cash during volatile down periods cuts strategy vol -> inflates Sharpe; and annualized Sharpe on ~40-48 non-overlapping points is noise (2025 timed 5.78). It CONTRADICTS the robust TIM2 (timing wash, +0.08 mean) and FILT2 (selection NEGATIVE). On the robust mean-return basis there is no reliable edge. NOT to be reported as combo-beats-buyhold. combo.json committed."
-    },
-    {
-      "id": "OPT1",
-      "title": "REAL ($0): walk-forward knob optimization (no in-sample tuning)",
-      "deliverable": "src/onset/run_optimize_wf.py",
-      "test": "tests/algo/test_run_optimize_wf_smoke.py",
-      "rationale": "Optimize the few real knobs -- disaster vote threshold {1,2,3}, filter top_pct {0.05,0.1,0.2}, holding horizon -- selecting on TRAIN windows and judging on TEST, so the reported performance is out-of-sample.",
-      "acceptanceCriteria": [
-        "for each split: choose the knob config maximizing TRAIN-window net long-only excess; evaluate that config on the TEST window",
-        "report walk-forward-selected out-of-sample net Sharpe + the full sensitivity grid (to show snooping risk)",
-        "writes results/production/optimize.json; hermetic smoke green; real run + committed; finding recorded",
-        "$0"
-      ],
-      "priority": 6,
-      "passes": true,
-      "notes": "DONE+REAL. FINDING: NO config recovers an edge. Walk-forward-selected (best on TRAIN) config OOS test Sharpe -2.14 (2024) / -2.66 (2025); even the best train config has negative train net mean. The onset+filter selection pool is robustly NEGATIVE across all knobs, in-sample and OOS. optimize.json committed."
-    },
-    {
-      "id": "PSYN",
-      "title": "Production-edge verdict + Sharpe-decomposition synthesis",
-      "deliverable": "src/onset/summarize_production.py",
-      "test": "tests/algo/test_summarize_production_smoke.py",
-      "rationale": "Aggregate TIM2 + FILT2 + COMBO1 + OPT1 into the Sharpe decomposition (how much from timing vs filtering) + the final deployability verdict + figure.",
-      "acceptanceCriteria": [
-        "reads results/production/* -> results/production/summary.md + paper/sections/figures/production_edge_summary.png",
-        "verdict: where (if anywhere) the reproducible edge lives (timing / filtering / both / none), and whether it is deployable cross-period (SIGN-D1)",
+        "reads results/motif/* -> results/motif/summary.md + paper/sections/figures/motif_mi_summary.png",
+        "verdict: BUILD-THE-MOTIF-MODEL only if conditional MI is permutation-significant AND stable across >=2/3 years; else 'conditional information exhausted' or 'present-but-unstable'",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 7,
-      "passes": true,
-      "notes": "DONE+REAL: src/onset/summarize_production.py -> summary.md + figure. VERDICT: NOT REPRODUCIBLE (timing wash +0.08; selection -1.83 / 0-3 years; WF-opt OOS -2.14/-2.66; disaster filter broken 0.47%). full gate 94."
+      "priority": 5, "passes": false, "notes": "Depends MI2, MI3."
     }
   ]
 }
