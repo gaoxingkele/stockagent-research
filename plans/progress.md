@@ -180,3 +180,6 @@ Tasks (all $0): SGN1 tradability decomposer (directionality+monotonicity+var-vs-
 ## 2026-06-06 SGN1 done -- tradability decomposer (what MI can't see)
 src/onset/tradability.py: directionality (per-regime Spearman slope of feature vs return + sign-hit-rate), monotonicity (conditional mean across feature quantile buckets + mono_coef = rank corr bucket-index vs bucket-mean), variance_vs_mean (directional_fraction = mean-dispersion / (mean+var dispersion)). All conditional-MEAN based, never MI (SIGN-T1).
 Hermetic test proves the point: a SIGN-BLIND synthetic (Var[y|x] depends on x, E[y|x]=0) has mutual_info>0.01 but directionality slope ~0 and mono_coef<0.5 -- exactly the case MI cannot distinguish from tradable. Directional synthetic scores slope>0.15, mono_coef>0.7. Next: RGT1 regime-gated signal.
+
+## 2026-06-06 RGT1 done -- simplest regime-gated long-only signal
+src/onset/regime_gate.py: regime_gated_excess (per-date long-only top-K by feature via long_only_excess, ZERO on out-of-regime dates, net of round-trip A-share cost), gated_vs_ungated (isolates the regime's marginal contribution). Reuses long_only + ashare_cost (no reimplementation). Point-in-time. 3/3 green. Next: TRD1 REAL directional-vs-sign-blind diagnosis.

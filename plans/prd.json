@@ -40,7 +40,7 @@
         "hermetic: the gate is non-zero ONLY on in-regime dates and selects the top-K by feature; a constructed directional in-regime edge yields positive net excess"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Depends SGN1. Reuse long_only + ashare_cost; do NOT reimplement cost."
     },
     {
