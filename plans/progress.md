@@ -148,3 +148,7 @@ FINAL: the DOCUMENTED V12.31 rules (onset + V7c filters + simplified disaster ti
 Core: we proved MARGINAL I(pattern; fwd_r) ~ 0. The promoter-needs-transcription-factor hypothesis = the info is CONDITIONAL: I(pattern; fwd_r | regime) > 0. This line MEASURES conditional vs marginal MI with a within-regime PERMUTATION null (MI is positively biased -> raw MI is not evidence), and tests cross-period stability. Conditional MI > null & stable -> build the graph/point-process onset-motif model; else the onset concept is information-theoretically exhausted.
 Tasks: MI1 estimators+permutation null -> REG1 regime states; MI2 REAL marginal-vs-conditional MI probe (decisive); MI3 REAL cross-period MI stability; MSYN go/no-go verdict. All $0 (pure measurement, no model). New SIGN-M1.
 Production-edge line merged to main + archived to prd_production_edge_done.json.
+
+## 2026-06-05 MI1 done -- MI estimators + permutation null
+src/onset/mutual_info.py: quantile_bins (equal-freq, tie-robust), mutual_info (marginal, binned, biased), conditional_mi (sum_z P(z)*MI within stratum), perm_pvalue (shuffle Y within Z-strata for conditional / globally for marginal; p=(1+#null>=obs)/(1+n)). SIGN-M1 enforced: significance only from permutation null, never raw MI.
+Hermetic test: XOR-style constant-magnitude signs so NO magnitude leaks marginally -> conditional MI >> marginal (~0), conditional perm p<0.02 while marginal p>0.10; pure-noise stays non-significant. 5/5 green, full gate 99 passed. Next: REG1 regime builder.
