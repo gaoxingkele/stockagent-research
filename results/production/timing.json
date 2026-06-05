@@ -1,0 +1,177 @@
+{
+  "timing_cost": 0.001,
+  "n_periods": 212,
+  "disaster_frac_overall": 0.0047169811320754715,
+  "arms": {
+    "disaster_filter": {
+      "per_year": {
+        "2022": {
+          "buy_hold_sharpe": -0.42475349464806145,
+          "timed_sharpe": -0.42475349464806145,
+          "n_periods": 49,
+          "incremental_timing": 0.0,
+          "buy_hold_mean_ci95": [
+            -0.01244202708972336,
+            0.00757527605252552
+          ],
+          "timed_mean_ci95": [
+            -0.01244202708972336,
+            0.00757527605252552
+          ],
+          "disaster_frac": 0.0,
+          "n_switches": 0
+        },
+        "2023": {
+          "buy_hold_sharpe": 0.25338988167363985,
+          "timed_sharpe": 0.25338988167363985,
+          "n_periods": 48,
+          "incremental_timing": 0.0,
+          "buy_hold_mean_ci95": [
+            -0.005521796498457881,
+            0.007215999992081573
+          ],
+          "timed_mean_ci95": [
+            -0.005521796498457881,
+            0.007215999992081573
+          ],
+          "disaster_frac": 0.0,
+          "n_switches": 0
+        },
+        "2024": {
+          "buy_hold_sharpe": 0.19894712451204039,
+          "timed_sharpe": 0.19894712451204039,
+          "n_periods": 49,
+          "incremental_timing": 0.0,
+          "buy_hold_mean_ci95": [
+            -0.015444069983056037,
+            0.023905212769985754
+          ],
+          "timed_mean_ci95": [
+            -0.015444069983056037,
+            0.023905212769985754
+          ],
+          "disaster_frac": 0.0,
+          "n_switches": 0
+        },
+        "2025": {
+          "buy_hold_sharpe": 2.352048756418986,
+          "timed_sharpe": 2.141527738227588,
+          "n_periods": 48,
+          "incremental_timing": -0.21052101819139812,
+          "buy_hold_mean_ci95": [
+            0.0008805507873131998,
+            0.01436085394656035
+          ],
+          "timed_mean_ci95": [
+            -0.000499559351304801,
+            0.013868702831710298
+          ],
+          "disaster_frac": 0.020833333333333332,
+          "n_switches": 2
+        }
+      },
+      "pooled": {
+        "buy_hold_sharpe": 0.3803692476968586,
+        "timed_sharpe": 0.3481576441169107,
+        "n_periods": 212,
+        "incremental_timing": -0.0322116035799479,
+        "buy_hold_mean_ci95": [
+          -0.00320318210913609,
+          0.007883752107452747
+        ],
+        "timed_mean_ci95": [
+          -0.0034066828424141895,
+          0.007752338986319127
+        ],
+        "disaster_frac": 0.0047169811320754715,
+        "n_switches": 2
+      },
+      "out_frac": 0.0047169811320754715
+    },
+    "trend_regime": {
+      "per_year": {
+        "2022": {
+          "buy_hold_sharpe": -0.42475349464806145,
+          "timed_sharpe": 0.07999816185067617,
+          "n_periods": 49,
+          "incremental_timing": 0.5047516564987377,
+          "buy_hold_mean_ci95": [
+            -0.01244202708972336,
+            0.00757527605252552
+          ],
+          "timed_mean_ci95": [
+            -0.0055559524913122785,
+            0.00525574037670628
+          ],
+          "disaster_frac": 0.5510204081632653,
+          "n_switches": 8
+        },
+        "2023": {
+          "buy_hold_sharpe": 0.25338988167363985,
+          "timed_sharpe": -0.31317371468836847,
+          "n_periods": 48,
+          "incremental_timing": -0.5665635963620084,
+          "buy_hold_mean_ci95": [
+            -0.005521796498457881,
+            0.007215999992081573
+          ],
+          "timed_mean_ci95": [
+            -0.0037602710502522498,
+            0.0029394774027568607
+          ],
+          "disaster_frac": 0.5625,
+          "n_switches": 10
+        },
+        "2024": {
+          "buy_hold_sharpe": 0.19894712451204039,
+          "timed_sharpe": 0.5953492952778513,
+          "n_periods": 49,
+          "incremental_timing": 0.3964021707658109,
+          "buy_hold_mean_ci95": [
+            -0.015444069983056037,
+            0.023905212769985754
+          ],
+          "timed_mean_ci95": [
+            -0.00873958445859622,
+            0.023823059863871114
+          ],
+          "disaster_frac": 0.4897959183673469,
+          "n_switches": 9
+        },
+        "2025": {
+          "buy_hold_sharpe": 2.352048756418986,
+          "timed_sharpe": 1.458961834488626,
+          "n_periods": 48,
+          "incremental_timing": -0.8930869219303601,
+          "buy_hold_mean_ci95": [
+            0.0008805507873131998,
+            0.01436085394656035
+          ],
+          "timed_mean_ci95": [
+            -0.002190212597062704,
+            0.009980789378697796
+          ],
+          "disaster_frac": 0.2708333333333333,
+          "n_switches": 9
+        }
+      },
+      "pooled": {
+        "buy_hold_sharpe": 0.3803692476968586,
+        "timed_sharpe": 0.4609163474780123,
+        "n_periods": 212,
+        "incremental_timing": 0.08054709978115371,
+        "buy_hold_mean_ci95": [
+          -0.00320318210913609,
+          0.007883752107452747
+        ],
+        "timed_mean_ci95": [
+          -0.0015689780142923984,
+          0.0065209630769823435
+        ],
+        "disaster_frac": 0.45754716981132076,
+        "n_switches": 41
+      },
+      "out_frac": 0.45754716981132076
+    }
+  }
+}

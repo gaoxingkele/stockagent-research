@@ -23,7 +23,9 @@
         "decompose_sharpe(market_ret_by_date, in_market_by_date, selection_excess_by_date) -> {buy_hold, timed, timed_plus_selected} annualized Sharpe + the incremental Sharpe from timing and from selection",
         "hermetic test: timing out the negative-return dates raises Sharpe; selection adds on top"
       ],
-      "priority": 1, "passes": false, "notes": "Reuse src/onset/long_only.summarize_excess for Sharpe + CI."
+      "priority": 1,
+      "passes": true,
+      "notes": "DONE: src/onset/timing_overlay.py (timed_series + decompose_sharpe: buy_hold vs timed vs timed+selected, incremental timing/selection). 3 hermetic tests green."
     },
     {
       "id": "TIM2",
@@ -37,7 +39,9 @@
         "writes results/production/timing.json; hermetic smoke green; real run + committed; finding recorded (does timing carry the Sharpe?)",
         "$0"
       ],
-      "priority": 2, "passes": false, "notes": "Depends TIM1. Timing has low turnover -> cost is the regime-switch turnover only."
+      "priority": 2,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: timing edge NOT reproducible with available signals. (a) disaster_filter reproduction BROKEN: fires 0.5%, ZERO in 2022 bear (concept signals C2/C3 are TODO). (b) standard trend regime is net wash (pooled buy_hold 0.38 -> timed 0.46, +0.08, CI spans 0) and regime-dependent: helps 2022(-0.42->+0.08)/2024(+0.20->+0.60), hurts 2023/2025. -> the hypothesis that the Sharpe is mostly timing is NOT supported with these signals; production timing needs the full disaster composite. timing.json committed."
     },
     {
       "id": "FILT1",
@@ -50,7 +54,9 @@
         "individual filters exposed (overheated, zombie, industry_momentum_rank) and point-in-time",
         "hermetic synthetic test: filters exclude the constructed overheated/zombie/worst-industry rows; pool is a small subset"
       ],
-      "priority": 3, "passes": false, "notes": "Reuse src/onset/expert_pattern; compute 60d industry momentum + MA60 flatness from D1."
+      "priority": 3,
+      "passes": true,
+      "notes": "DONE: src/onset/extreme_filter.py (pool_mask = onset(expert_pattern) & not-overheated & not-zombie & not-worst-industry & top-pct). 3 hermetic tests green. (Fixed bullish_onset_rules index-alignment by sorting+reset before calling.)"
     },
     {
       "id": "FILT2",
@@ -63,7 +69,9 @@
         "writes results/production/filtered_pool.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends FILT1. Reuse run_robustness windows + long_only + ashare_cost."
+      "priority": 4,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: the reproduced onset+filter selection pool UNDERPERFORMS the market consistently: long-only market-excess Sharpe 2023 -2.62 / 2024 -2.14 / 2025 -2.66, pooled -1.83 (CI excludes 0 on the negative side); 0/3 positive years. The SELECTION component as reproduced is a NEGATIVE long-only edge. (Lenient settings score>=2/top20%; stricter swept in OPT1.) filtered_pool.json committed."
     },
     {
       "id": "COMBO1",
@@ -77,7 +85,9 @@
         "writes results/production/combo.json; hermetic smoke green; real run + committed; SIGN-D1 deployable verdict recorded",
         "$0"
       ],
-      "priority": 5, "passes": false, "notes": "Depends TIM2, FILT2."
+      "priority": 5,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING (with caveat): the Sharpe decomposition shows timed/combo Sharpe >> buy-hold (pooled timed 1.95 vs TIM2 0.46), BUT this is a Sharpe-INFLATION artifact -- sitting in cash during volatile down periods cuts strategy vol -> inflates Sharpe; and annualized Sharpe on ~40-48 non-overlapping points is noise (2025 timed 5.78). It CONTRADICTS the robust TIM2 (timing wash, +0.08 mean) and FILT2 (selection NEGATIVE). On the robust mean-return basis there is no reliable edge. NOT to be reported as combo-beats-buyhold. combo.json committed."
     },
     {
       "id": "OPT1",
@@ -91,7 +101,9 @@
         "writes results/production/optimize.json; hermetic smoke green; real run + committed; finding recorded",
         "$0"
       ],
-      "priority": 6, "passes": false, "notes": "Depends COMBO1. NEVER report the best in-sample config as the result (SIGN-P1)."
+      "priority": 6,
+      "passes": true,
+      "notes": "DONE+REAL. FINDING: NO config recovers an edge. Walk-forward-selected (best on TRAIN) config OOS test Sharpe -2.14 (2024) / -2.66 (2025); even the best train config has negative train net mean. The onset+filter selection pool is robustly NEGATIVE across all knobs, in-sample and OOS. optimize.json committed."
     },
     {
       "id": "PSYN",
@@ -104,7 +116,9 @@
         "verdict: where (if anywhere) the reproducible edge lives (timing / filtering / both / none), and whether it is deployable cross-period (SIGN-D1)",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 7, "passes": false, "notes": "Depends TIM2, FILT2, COMBO1, OPT1."
+      "priority": 7,
+      "passes": true,
+      "notes": "DONE+REAL: src/onset/summarize_production.py -> summary.md + figure. VERDICT: NOT REPRODUCIBLE (timing wash +0.08; selection -1.83 / 0-3 years; WF-opt OOS -2.14/-2.66; disaster filter broken 0.47%). full gate 94."
     }
   ]
 }
