@@ -24,7 +24,9 @@
         "variance_vs_mean(x, y, z_states) -> how much of the dependence is in E[y|x] (directional) vs Var[y|x] (sign-blind)",
         "hermetic: a DIRECTIONAL synthetic (E[y|x] monotone in x, regime flips sign) scores high directionality+monotonicity; a SIGN-BLIND synthetic (Var[y|x] depends on x, E[y|x]=0) scores ~0 directionality but non-zero MI"
       ],
-      "priority": 1, "passes": false, "notes": "SIGN-T1: conditional MEAN, not MI. This is what MI could not see."
+      "priority": 1,
+      "passes": true,
+      "notes": "SIGN-T1: conditional MEAN, not MI. This is what MI could not see."
     },
     {
       "id": "RGT1",
@@ -37,7 +39,9 @@
         "point-in-time: regime + feature both use only past/known info (SIGN-A1)",
         "hermetic: the gate is non-zero ONLY on in-regime dates and selects the top-K by feature; a constructed directional in-regime edge yields positive net excess"
       ],
-      "priority": 2, "passes": false, "notes": "Depends SGN1. Reuse long_only + ashare_cost; do NOT reimplement cost."
+      "priority": 2,
+      "passes": false,
+      "notes": "Depends SGN1. Reuse long_only + ashare_cost; do NOT reimplement cost."
     },
     {
       "id": "TRD1",
@@ -50,7 +54,9 @@
         "writes results/motif/tradability.json; hermetic smoke green; real run + committed; the directional-vs-sign-blind finding recorded in progress.md",
         "$0"
       ],
-      "priority": 3, "passes": false, "notes": "Depends SGN1. Reads results/motif/mi_stability.json for the hit list."
+      "priority": 3,
+      "passes": false,
+      "notes": "Depends SGN1. Reads results/motif/mi_stability.json for the hit list."
     },
     {
       "id": "TRD2",
@@ -64,7 +70,9 @@
         "writes results/motif/regime_gate_bt.json; hermetic smoke green; real run + committed; the net-of-cost cross-period finding recorded",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends RGT1, TRD1. SIGN-A1 costs, SIGN-D1 cross-period, SIGN-003 clustered CI."
+      "priority": 4,
+      "passes": false,
+      "notes": "Depends RGT1, TRD1. SIGN-A1 costs, SIGN-D1 cross-period, SIGN-003 clustered CI."
     },
     {
       "id": "TSYN",
@@ -77,7 +85,9 @@
         "verdict TRADABLE only if directional AND monotone AND net-of-cost excess CI>0 in >=2/3 years; else INFORMATION-ONLY (with which dimension failed: sign-blind / non-monotone / eaten-by-cost / non-stationary)",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 5, "passes": false, "notes": "Depends TRD1, TRD2. The honest bridge from the MI verdict to a deployment decision."
+      "priority": 5,
+      "passes": false,
+      "notes": "Depends TRD1, TRD2. The honest bridge from the MI verdict to a deployment decision."
     }
   ]
 }
