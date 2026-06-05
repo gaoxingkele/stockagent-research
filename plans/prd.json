@@ -86,7 +86,7 @@
         "hermetic smoke green; real run + committed"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Depends TRD1, TRD2. The honest bridge from the MI verdict to a deployment decision."
     }
   ]
