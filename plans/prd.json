@@ -71,7 +71,7 @@
         "$0"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Depends RGT1, TRD1. SIGN-A1 costs, SIGN-D1 cross-period, SIGN-003 clustered CI."
     },
     {
