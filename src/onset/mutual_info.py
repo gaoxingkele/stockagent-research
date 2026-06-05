@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import numpy as np
 
-__all__ = ["quantile_bins", "mutual_info", "conditional_mi", "perm_pvalue"]
+__all__ = ["quantile_bins", "mutual_info", "conditional_mi", "perm_pvalue",
+           "interaction_pvalue"]
 
 
 def quantile_bins(x: np.ndarray, bins: int = 8) -> np.ndarray:
@@ -99,19 +100,74 @@ def perm_pvalue(x: np.ndarray, y: np.ndarray, z_states: np.ndarray | None = None
     y = np.asarray(y, dtype=float)
     if conditional:
         z = np.asarray(z_states)
-        obs = conditional_mi(x, y, z, bins)
-        strata = [np.flatnonzero(z == s) for s in np.unique(z)]
+        n = x.size
+        # Precompute, per stratum, the x/y bin codes ONCE (x never changes; the
+        # null only permutes y, and binning the SAME y values in a shuffled order
+        # gives the same codes in shuffled order -> we permute codes, not values).
+        strata = []
+        for s in np.unique(z):
+            idx = np.flatnonzero(z == s)
+            if idx.size < bins:
+                continue
+            cx = quantile_bins(x[idx], bins)
+            cy = quantile_bins(y[idx], bins)
+            strata.append((idx.size, cx, cy))
+        obs = sum((ns / n) * _mi_from_codes(cx, cy) for ns, cx, cy in strata)
         null = np.empty(n_perm)
         for i in range(n_perm):
-            yp = y.copy()
-            for idx in strata:
-                yp[idx] = y[rng.permutation(idx)]
-            null[i] = conditional_mi(x, yp, z, bins)
+            null[i] = sum((ns / n) * _mi_from_codes(cx, cy[rng.permutation(ns)])
+                          for ns, cx, cy in strata)
     else:
-        obs = mutual_info(x, y, bins)
+        cx = quantile_bins(x, bins)
+        cy = quantile_bins(y, bins)
+        obs = _mi_from_codes(cx, cy)
         null = np.empty(n_perm)
         for i in range(n_perm):
-            null[i] = mutual_info(x, y[rng.permutation(x.size)], bins)
+            null[i] = _mi_from_codes(cx, cy[rng.permutation(cx.size)])
     p = (1.0 + float(np.sum(null >= obs))) / (1.0 + n_perm)
     return {"observed": float(obs), "null_mean": float(null.mean()),
             "p_value": float(p), "n_perm": int(n_perm)}
+
+
+def interaction_pvalue(x: np.ndarray, y: np.ndarray, z_states: np.ndarray,
+                       n_perm: int = 500, bins: int = 8, seed: int = 0) -> dict:
+    """The DECISIVE motif test: does the regime Z ADD information?
+
+    Tests interaction information II = I(X;Y|Z) - I(X;Y) > 0 against a null where
+    Z is PERMUTED across samples (X,Y pairs kept intact). Permuting Z destroys any
+    genuine three-way X-Y-Z structure while preserving the marginal X-Y relation
+    AND the per-stratum binning bias -- so a positive result means conditioning on
+    the REAL regime buys more than a random regime label of the same granularity.
+
+    Returns observed conditional MI, marginal MI, interaction (cond-marg), the
+    null distribution of conditional MI under permuted Z, and p_value =
+    P(cond_MI(perm Z) >= observed cond_MI). p<0.05 => the regime adds real info.
+    """
+    rng = np.random.default_rng(seed)
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    z = np.asarray(z_states)
+    n = x.size
+    cx = quantile_bins(x, bins)          # GLOBAL codes (fixed), so permuting Z is cheap
+    cy = quantile_bins(y, bins)
+    marg = _mi_from_codes(cx, cy)
+
+    def _cond(zz):
+        tot = 0.0
+        for s in np.unique(zz):
+            m = zz == s
+            ns = int(m.sum())
+            if ns < bins:
+                continue
+            tot += (ns / n) * _mi_from_codes(cx[m], cy[m])
+        return tot
+
+    cond_obs = _cond(z)
+    null = np.empty(n_perm)
+    for i in range(n_perm):
+        null[i] = _cond(z[rng.permutation(n)])
+    p = (1.0 + float(np.sum(null >= cond_obs))) / (1.0 + n_perm)
+    return {"cond_mi": float(cond_obs), "marg_mi": float(marg),
+            "interaction": float(cond_obs - marg),
+            "null_cond_mean": float(null.mean()), "p_value": float(p),
+            "n_perm": int(n_perm)}

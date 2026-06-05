@@ -2,7 +2,7 @@
 import numpy as np
 
 from src.onset.mutual_info import (mutual_info, conditional_mi, perm_pvalue,
-                                   quantile_bins)
+                                   quantile_bins, interaction_pvalue)
 
 
 def _xor_like(n=4000, seed=1):
@@ -54,4 +54,26 @@ def test_permutation_null_kills_noise():
     y = rng.standard_normal(3000)
     z = rng.integers(0, 3, 3000)
     r = perm_pvalue(x, y, z, n_perm=200, conditional=True)
+    assert r["p_value"] > 0.05
+
+
+def test_interaction_detects_regime_added_info():
+    """When the regime GENUINELY adds info (XOR: Z flips the X->Y relation), the
+    Z-permutation interaction test is significant and interaction > 0."""
+    x, y, z = _xor_like()
+    r = interaction_pvalue(x, y, z, n_perm=200)
+    assert r["interaction"] > 0
+    assert r["p_value"] < 0.02
+
+
+def test_interaction_null_when_regime_irrelevant():
+    """When Z is independent of the (real) X->Y relation, the interaction test is
+    NOT significant -- conditioning on a random regime adds nothing. This is the
+    trap: I(X;Y|Z)>0 trivially, but Z adds no information."""
+    rng = np.random.default_rng(11)
+    n = 4000
+    x = rng.standard_normal(n)
+    y = x + 0.3 * rng.standard_normal(n)        # strong marginal X->Y
+    z = rng.integers(0, 2, n)                    # regime unrelated to the relation
+    r = interaction_pvalue(x, y, z, n_perm=200)
     assert r["p_value"] > 0.05

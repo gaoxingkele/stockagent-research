@@ -56,7 +56,7 @@
         "$0"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Depends MI1, REG1. SIGN-M1: only permutation-null-significant conditional MI counts."
     },
     {
