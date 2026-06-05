@@ -40,7 +40,7 @@
         "hermetic synthetic test: states are point-in-time (no future bar used) and take the expected values on a constructed series"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Reuse disaster_filter; trend = trailing-return sign (shifted); vol = rolling std tercile."
     },
     {

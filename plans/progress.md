@@ -152,3 +152,6 @@ Production-edge line merged to main + archived to prd_production_edge_done.json.
 ## 2026-06-05 MI1 done -- MI estimators + permutation null
 src/onset/mutual_info.py: quantile_bins (equal-freq, tie-robust), mutual_info (marginal, binned, biased), conditional_mi (sum_z P(z)*MI within stratum), perm_pvalue (shuffle Y within Z-strata for conditional / globally for marginal; p=(1+#null>=obs)/(1+n)). SIGN-M1 enforced: significance only from permutation null, never raw MI.
 Hermetic test: XOR-style constant-magnitude signs so NO magnitude leaks marginally -> conditional MI >> marginal (~0), conditional perm p<0.02 while marginal p>0.10; pure-noise stays non-significant. 5/5 green, full gate 99 passed. Next: REG1 regime builder.
+
+## 2026-06-05 REG1 done -- point-in-time regime states
+src/onset/regimes.py: trend_state (sign of shifted trailing market return), vol_state (tercile of shifted trailing market vol), disaster_state (disaster_filter), regime_states(df)->per-date trend/vol/disaster, map_states_to_rows broadcasts onto anchor rows. All point-in-time (shift). Bug fixed: NaN>0 yields False not NaN so fillna(True) never fired -> used .where(trailing.notna(),True). 3/3 green. Next: MI2 REAL probe (decisive).
