@@ -46,9 +46,9 @@ def _mi_from_codes(cx: np.ndarray, cy: np.ndarray) -> float:
     ky = int(cy.max()) + 1
     if kx < 2 or ky < 2:
         return 0.0
-    joint = np.zeros((kx, ky), dtype=float)
-    np.add.at(joint, (cx, cy), 1.0)
-    joint /= n
+    # bincount on the flattened (cx,cy) index -- much faster than np.add.at
+    joint = np.bincount(cx * ky + cy, minlength=kx * ky).astype(float)
+    joint = joint.reshape(kx, ky) / n
     px = joint.sum(axis=1, keepdims=True)
     py = joint.sum(axis=0, keepdims=True)
     denom = px * py

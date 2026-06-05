@@ -71,7 +71,7 @@
         "$0"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Depends MI2. The same non-stationarity discipline as ROB1 (SIGN-D1/K1) applied to information, not return."
     },
     {
