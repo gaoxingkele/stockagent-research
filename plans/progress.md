@@ -206,3 +206,6 @@ MOTIF-TRADABILITY BACKLOG COMPLETE.
 ## NEW LINE (research/regime-baseline-bench) -- do 2025-26 SOTA baselines survive our honest protocol?
 motif-tradability merged+archived. After the SOTA review, benchmark the closest baselines by REIMPLEMENTING their method on D1 + our protocol (NOT matching their US numbers; SIGN-B1).
 EXP-A rolling-HMM regime LightGBM (MDPI 2026) vs our regime-gating vs plain LGBM; EXP-B When-Alpha-Breaks two-level abstention (2603.13252) on our onset ranker; EXP-C NMI+permutation info-theory (2511.16339 / 2601.00395) vs our interaction info. Method tasks: BENCH1 rolling-HMM, BENCH2 Deflated Sharpe, BENCH3 abstention. All report raw Sharpe + DSR + date-clustered CI net of A-share cost, per-year. BSYN synthesis. hmmlearn 0.3.3 installed. New SIGN-B1.
+
+## 2026-06-07 BENCH1 done -- rolling-HMM regime detector
+src/bench/hmm_regime.py: rolling_hmm_states (GaussianHMM, expanding past-window refit every k, Viterbi-last-of-X[:t+1] -> point-in-time; canonical state order by mean of feature 0 to stabilize labels across refits). Reimplements the MDPI 2026 rolling-HMM component. 2/2 green: recovers a 2-regime synthetic + no-future-leakage (perturbing the tail leaves earlier states identical). Next: BENCH2 Deflated Sharpe.

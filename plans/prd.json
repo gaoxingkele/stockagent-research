@@ -23,7 +23,9 @@
         "returns a per-date Series alignable via regimes.map_states_to_rows",
         "hermetic: a synthetic 2-regime Gaussian series (low-vol/high-vol blocks) -> recovered states separate the blocks; assert no future bar used (shifting the series shifts states)"
       ],
-      "priority": 1, "passes": false, "notes": "hmmlearn GaussianHMM; refit on a rolling/expanding window, predict next; cache to keep it CPU-cheap."
+      "priority": 1,
+      "passes": true,
+      "notes": "hmmlearn GaussianHMM; refit on a rolling/expanding window, predict next; cache to keep it CPU-cheap."
     },
     {
       "id": "BENCH2",
@@ -36,7 +38,9 @@
         "expected_max_sharpe(n_trials, var_sharpe) helper for the SR0 benchmark",
         "hermetic: more trials -> higher SR0 threshold -> lower DSR for the same observed Sharpe; a strong genuine Sharpe at n_trials=1 stays significant; a marginal Sharpe at n_trials=50 deflates below significance"
       ],
-      "priority": 2, "passes": false, "notes": "Standard DSR formulas; pure numpy/scipy."
+      "priority": 2,
+      "passes": false,
+      "notes": "Standard DSR formulas; pure numpy/scipy."
     },
     {
       "id": "BENCH3",
@@ -49,7 +53,9 @@
         "regime_instability from a state series (e.g. recent state-switch rate) and pred_uncertainty from a dispersion proxy",
         "hermetic: dates with high uncertainty/instability are abstained; a calm confident date trades; thresholds use only past data"
       ],
-      "priority": 3, "passes": false, "notes": "Reuse hmm/trend state-switch rate for instability; cross-sectional score dispersion for uncertainty."
+      "priority": 3,
+      "passes": false,
+      "notes": "Reuse hmm/trend state-switch rate for instability; cross-sectional score dispersion for uncertainty."
     },
     {
       "id": "EXPA",
@@ -63,7 +69,9 @@
         "writes results/bench/expa.json; hermetic smoke green; real run + committed; which arm (if any) survives net-of-cost recorded in progress.md",
         "$0"
       ],
-      "priority": 4, "passes": false, "notes": "Depends BENCH1, BENCH2. Reuse select_feature_columns (exclude _fwd*), long_only, ashare_cost, regimes."
+      "priority": 4,
+      "passes": false,
+      "notes": "Depends BENCH1, BENCH2. Reuse select_feature_columns (exclude _fwd*), long_only, ashare_cost, regimes."
     },
     {
       "id": "EXPB",
@@ -77,7 +85,9 @@
         "writes results/bench/expb.json; hermetic smoke green; real run + committed; whether abstention turns net Sharpe positive recorded",
         "$0"
       ],
-      "priority": 5, "passes": false, "notes": "Depends BENCH2, BENCH3. Reuse run_mi_probe.build / candle features + regimes + long_only."
+      "priority": 5,
+      "passes": false,
+      "notes": "Depends BENCH2, BENCH3. Reuse run_mi_probe.build / candle features + regimes + long_only."
     },
     {
       "id": "EXPC",
@@ -90,7 +100,9 @@
         "writes results/bench/expc.json; hermetic smoke green; real run + committed; the positioning finding (what NMI/perm baselines see vs our II) recorded",
         "$0"
       ],
-      "priority": 6, "passes": false, "notes": "Depends nothing new (reuse mutual_info + results/motif). Add an nmi() helper if needed."
+      "priority": 6,
+      "passes": false,
+      "notes": "Depends nothing new (reuse mutual_info + results/motif). Add an nmi() helper if needed."
     },
     {
       "id": "BSYN",
@@ -103,7 +115,9 @@
         "verdict per experiment: SURVIVES vs SUB-COST/NULL, with the binding constraint named; overall positioning sentence",
         "hermetic smoke green; real run + committed"
       ],
-      "priority": 7, "passes": false, "notes": "Depends EXPA, EXPB, EXPC."
+      "priority": 7,
+      "passes": false,
+      "notes": "Depends EXPA, EXPB, EXPC."
     }
   ]
 }
