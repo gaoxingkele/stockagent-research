@@ -86,7 +86,7 @@
         "$0"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Depends BENCH2, BENCH3. Reuse run_mi_probe.build / candle features + regimes + long_only."
     },
     {
