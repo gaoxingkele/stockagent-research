@@ -116,7 +116,7 @@
         "hermetic smoke green; real run + committed"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Depends EXPA, EXPB, EXPC."
     }
   ]
