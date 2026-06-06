@@ -70,7 +70,7 @@
         "$0"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Depends BENCH1, BENCH2. Reuse select_feature_columns (exclude _fwd*), long_only, ashare_cost, regimes."
     },
     {

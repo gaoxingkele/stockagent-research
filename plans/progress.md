@@ -215,3 +215,8 @@ src/bench/deflated_sharpe.py: probabilistic_sharpe (PSR, skew/kurtosis/n-adjuste
 
 ## 2026-06-07 BENCH3 done -- two-level abstention gate
 src/bench/abstention.py: regime_instability (trailing state-switch rate), abstain_mask (TRADE when uncertainty AND instability both below expanding PAST q-quantile; warmup -> trade). Reimplements When-Alpha-Breaks abstention, point-in-time. 4/4 green. Method tasks (BENCH1/2/3) done; next REAL: EXPA regime-LGBM head-to-head.
+
+## 2026-06-07 EXPA done -- Regime-Aware LightGBM vs ours, on our protocol (ALL SUB-COST)
+src/bench/run_expa.py: one LGBM cross-sectional ranker, 3 gates (plain/HMM-favorable/trend-up), D1 walk-forward (test 2025Q2/Q3/Q4), non-overlap 5-day, A-share cost, date-clustered CI + Deflated Sharpe (n_trials=3).
+RESULT (VERDICT: ALL SUB-COST / not DSR+CI significant): plain Sharpe +0.89 DSR .654 CI[-0.0016,+0.0036]; hmm +1.92 DSR .993 CI[0.0,+0.0025]; trend +1.45 DSR .821 CI[-0.0008,+0.0038].
+KEY SKEPTICAL READ: the HMM arm's high Sharpe+DSR is a CASH-DURING-VOLATILITY Sharpe-INFLATION artifact (gating to cash cuts vol -> inflates Sharpe), NOT selection alpha -- its mean-excess CI lower bound is exactly 0.0, i.e. no robustly-positive mean edge. No arm clears strictly-positive net-of-cost mean CI. The MDPI Regime-Aware LightGBM method, reimplemented on A-shares under our honest protocol, is sub-cost just like our own onset signal. Strong paper point: regime gating buys Sharpe via timing/risk-reduction, not net-of-cost alpha. Next: EXPB abstention.
