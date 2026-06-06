@@ -212,3 +212,6 @@ src/bench/hmm_regime.py: rolling_hmm_states (GaussianHMM, expanding past-window 
 
 ## 2026-06-07 BENCH2 done -- Deflated Sharpe Ratio
 src/bench/deflated_sharpe.py: probabilistic_sharpe (PSR, skew/kurtosis/n-adjusted), expected_max_sharpe (SR0 = expected max of n_trials Sharpes, Bailey-LdP), deflated_sharpe (DSR = PSR vs SR0). Annualized-in -> per-period conversion via periods_per_year. 5/5 green: more trials -> higher SR0 -> lower DSR; strong single-trial Sharpe stays significant (dsr>0.95); marginal Sharpe at 50 trials deflates (psr>0.5 but dsr<0.5). Next: BENCH3 abstention.
+
+## 2026-06-07 BENCH3 done -- two-level abstention gate
+src/bench/abstention.py: regime_instability (trailing state-switch rate), abstain_mask (TRADE when uncertainty AND instability both below expanding PAST q-quantile; warmup -> trade). Reimplements When-Alpha-Breaks abstention, point-in-time. 4/4 green. Method tasks (BENCH1/2/3) done; next REAL: EXPA regime-LGBM head-to-head.

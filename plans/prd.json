@@ -54,7 +54,7 @@
         "hermetic: dates with high uncertainty/instability are abstained; a calm confident date trades; thresholds use only past data"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Reuse hmm/trend state-switch rate for instability; cross-sectional score dispersion for uncertainty."
     },
     {
