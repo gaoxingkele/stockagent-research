@@ -101,7 +101,7 @@
         "$0"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Depends nothing new (reuse mutual_info + results/motif). Add an nmi() helper if needed."
     },
     {

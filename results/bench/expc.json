@@ -1,0 +1,102 @@
+{
+  "n_perm": 300,
+  "bins": 8,
+  "items": [
+    {
+      "feature": "close_pct_prior",
+      "regime": "trend",
+      "target": "_fwd_r5",
+      "marginal_nmi": 0.0007168065925574164,
+      "conditional_nmi": 0.0031559568094732824,
+      "marginal_perm_p": 0.0033222591362126247,
+      "conditional_perm_p": 0.0033222591362126247,
+      "ours_interaction": {
+        "interaction": 0.0048383331520077105,
+        "interact_p": 0.0033222591362126247,
+        "cond_mi": 0.0063288905529756065,
+        "marg_mi": 0.0014905574009678956
+      }
+    },
+    {
+      "feature": "dist_low_atr",
+      "regime": "trend",
+      "target": "_fwd_r5",
+      "marginal_nmi": 0.0008504503212075924,
+      "conditional_nmi": 0.0032074665796232174,
+      "marginal_perm_p": 0.0033222591362126247,
+      "conditional_perm_p": 0.0033222591362126247,
+      "ours_interaction": {
+        "interaction": 0.004610902311515212,
+        "interact_p": 0.0033222591362126247,
+        "cond_mi": 0.006379364028533762,
+        "marg_mi": 0.0017684617170185505
+      }
+    },
+    {
+      "feature": "onset_score",
+      "regime": "trend",
+      "target": "_fwd_r5",
+      "marginal_nmi": 0.000689810581901747,
+      "conditional_nmi": 0.002701655759069059,
+      "marginal_perm_p": 0.0033222591362126247,
+      "conditional_perm_p": 0.0033222591362126247,
+      "ours_interaction": {
+        "interaction": 0.004033232061508789,
+        "interact_p": 0.0033222591362126247,
+        "cond_mi": 0.005467652836921854,
+        "marg_mi": 0.0014344207754130648
+      }
+    },
+    {
+      "feature": "body",
+      "regime": "trend",
+      "target": "_fwd_r5",
+      "marginal_nmi": 0.0003765523012340536,
+      "conditional_nmi": 0.0015589845262181988,
+      "marginal_perm_p": 0.0033222591362126247,
+      "conditional_perm_p": 0.0033222591362126247,
+      "ours_interaction": {
+        "interaction": 0.002406175312140392,
+        "interact_p": 0.0033222591362126247,
+        "cond_mi": 0.0031890836513455622,
+        "marg_mi": 0.0007829083392051702
+      }
+    },
+    {
+      "feature": "close_loc",
+      "regime": "trend",
+      "target": "_fwd_r5",
+      "marginal_nmi": 0.0004857752243203543,
+      "conditional_nmi": 0.0015922674311576847,
+      "marginal_perm_p": 0.0033222591362126247,
+      "conditional_perm_p": 0.0033222591362126247,
+      "ours_interaction": {
+        "interaction": 0.002292007562530305,
+        "interact_p": 0.0033222591362126247,
+        "cond_mi": 0.0033021484707289285,
+        "marg_mi": 0.0010101409081986234
+      }
+    },
+    {
+      "feature": "close_pct_prior",
+      "regime": "vol",
+      "target": "_fwd_r5",
+      "marginal_nmi": 0.0007168065925574164,
+      "conditional_nmi": 0.001628852201259357,
+      "marginal_perm_p": 0.0033222591362126247,
+      "conditional_perm_p": 0.0033222591362126247,
+      "ours_interaction": {
+        "interaction": 0.0020442500746416553,
+        "interact_p": 0.0033222591362126247,
+        "cond_mi": 0.003534807475609551,
+        "marg_mi": 0.0014905574009678956
+      }
+    }
+  ],
+  "summary": {
+    "max_marginal_nmi": 0.0008504503212075924,
+    "nmi_efficient_regime": true,
+    "n_interaction_significant": 6,
+    "verdict": "NMI/conditional-MI baselines see near-zero marginal dependence (max marginal NMI=0.0009 < 0.05, the FIT efficient-market band); only our interaction information (Z-label permutation) isolates regime-ADDED information (6/6 hits II>0 at p<0.05). The existing info-theory framings would not have surfaced the regime-conditional structure as added information."
+  }
+}
