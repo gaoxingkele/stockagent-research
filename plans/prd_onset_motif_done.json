@@ -1,0 +1,93 @@
+{
+  "repo": "gaoxingkele/stockagent-research",
+  "branchName": "research/onset-motif",
+  "goal": "The decisive INFORMATION-THEORETIC go/no-go for upgrading the onset 'promoter' into a context-conditional 'onset motif'. We proved the MARGINAL mutual information I(pattern; forward_return) ~ 0. The promoter-needs-transcription-factor hypothesis says the information is CONDITIONAL: I(pattern; fwd_r | regime) > 0 even when the marginal is ~0. This line MEASURES that, with a permutation null (MI estimators are positively biased, so significance MUST come from a within-regime permutation test, not the raw MI). If conditional MI exceeds its permutation null while marginal does not -> there is conditional information worth modeling (build the graph/point-process motif model next). If conditional MI is ALSO at the null -> the onset concept is information-theoretically EXHAUSTED and no architecture can save it (a definitive answer). Also test whether any conditional MI is STABLE cross-period (the non-stationarity check). $0 (reuse candle features + D1; pure measurement, NO model).",
+  "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
+  "env": "Use .venv-xpu. Reuse src/onset/candle_geometry (FEATURE_COLS pattern features), src/onset/candle_pattern (anchor features), D1 (_fwd_r5, pct_chg, amount). Regime variables built in REG1 (trend / volatility / disaster via disaster_filter).",
+  "discipline": "Carry ALL prior SIGNs. SIGN-M1 (new): MI estimators are positively BIASED; NEVER report raw MI as evidence -- significance comes ONLY from a within-regime/stratum PERMUTATION null (shuffle the target within regime strata, breaking conditional dependence while preserving marginals). Report MI relative to the permutation null + a p-value. Use rank/quantile binning (robust). Conditional MI is the decisive object; marginal MI is the control.",
+  "acceptanceCriteria": [
+    "verifyCommand (pytest tests/algo) passes",
+    "Method tasks ship a hermetic test (synthetic with KNOWN (conditional) information, <5s, CPU); REAL tasks gate on machinery-runs + committed stats.json under results/motif/; findings (incl. a clean null) recorded, never gated (SIGN-R1)",
+    "Every MI claim carries a permutation-null p-value (SIGN-M1); no raw-MI claims",
+    "$0 new LLM cost"
+  ],
+  "tasks": [
+    {
+      "id": "MI1",
+      "title": "MI estimators: marginal, conditional, + within-stratum permutation null",
+      "deliverable": "src/onset/mutual_info.py",
+      "test": "tests/algo/test_mutual_info.py",
+      "rationale": "Binned (rank-quantile) MI for marginal I(X;Y) and conditional I(X;Y|Z) (Z discretized into states, MI within each, weighted), with a permutation null that shuffles Y WITHIN Z-strata so significance is unbiased.",
+      "acceptanceCriteria": [
+        "mutual_info(x, y, bins=8) -> binned MI (nats) using quantile bins",
+        "conditional_mi(x, y, z_states, bins=8) -> sum_z P(z) * MI(x,y | z=state)",
+        "perm_pvalue(x, y, z_states, n_perm=500, conditional=True) -> p-value from shuffling y within each z-stratum",
+        "hermetic synthetic: X carries info about Y ONLY given Z (e.g. Y = Z*X + noise) -> conditional MI >> marginal MI, and conditional perm p-value is small while marginal p-value is large"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Rank/quantile binning; permutation within strata is the crux (SIGN-M1)."
+    },
+    {
+      "id": "REG1",
+      "title": "Regime variable builder (trend / volatility / disaster), discretized",
+      "deliverable": "src/onset/regimes.py",
+      "test": "tests/algo/test_regimes.py",
+      "rationale": "Per-date regime states (point-in-time) to condition on: trend (trailing market return sign), volatility (rolling market vol tercile), disaster (disaster_filter).",
+      "acceptanceCriteria": [
+        "trend_state, vol_state (terciles), disaster_state from a per-date market series / D1; all point-in-time (shift)",
+        "each returns an integer state per date, mapped onto the anchor rows",
+        "hermetic synthetic test: states are point-in-time (no future bar used) and take the expected values on a constructed series"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Reuse disaster_filter; trend = trailing-return sign (shifted); vol = rolling std tercile."
+    },
+    {
+      "id": "MI2",
+      "title": "REAL ($0): marginal vs conditional MI of the onset pattern on A-shares",
+      "deliverable": "src/onset/run_mi_probe.py",
+      "test": "tests/algo/test_run_mi_probe_smoke.py",
+      "rationale": "THE decisive probe. Estimate I(pattern; fwd_r) and I(pattern; fwd_r | regime) for each regime variable, with permutation p-values. Pattern = candle features (per-feature and a combined score); fwd_r = _fwd_r5 (and market-neutral residual).",
+      "acceptanceCriteria": [
+        "build candle pattern features (candle_geometry) + a combined onset score; targets _fwd_r5 and market-neutral residual",
+        "for each regime (trend/vol/disaster): marginal MI + conditional MI + permutation p-values; report conditional-minus-marginal and whether conditional clears its null",
+        "writes results/motif/mi_probe.json; hermetic smoke green; real run executed + committed; the go/no-go finding recorded in progress.md",
+        "$0"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Depends MI1, REG1. SIGN-M1: only permutation-null-significant conditional MI counts."
+    },
+    {
+      "id": "MI3",
+      "title": "REAL ($0): cross-period stability of conditional MI (non-stationarity)",
+      "deliverable": "src/onset/run_mi_stability.py",
+      "test": "tests/algo/test_run_mi_stability_smoke.py",
+      "rationale": "Even if conditional MI > null pooled, is it STABLE across 2023/2024/2025? Information that only appears in one year is not a basis for a motif model.",
+      "acceptanceCriteria": [
+        "per-year conditional MI + permutation p-value for the best regime from MI2",
+        "writes results/motif/mi_stability.json; hermetic smoke green; real run + committed; whether conditional information is stable across years recorded",
+        "$0"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Depends MI2. The same non-stationarity discipline as ROB1 (SIGN-D1/K1) applied to information, not return."
+    },
+    {
+      "id": "MSYN",
+      "title": "Information-theoretic go/no-go verdict + synthesis",
+      "deliverable": "src/onset/summarize_motif.py",
+      "test": "tests/algo/test_summarize_motif_smoke.py",
+      "rationale": "Aggregate MI2 + MI3 into the decisive verdict: is there permutation-significant, cross-period-stable CONDITIONAL information that justifies building the onset-motif model -- or is the onset concept information-theoretically exhausted?",
+      "acceptanceCriteria": [
+        "reads results/motif/* -> results/motif/summary.md + paper/sections/figures/motif_mi_summary.png",
+        "verdict: BUILD-THE-MOTIF-MODEL only if conditional MI is permutation-significant AND stable across >=2/3 years; else 'conditional information exhausted' or 'present-but-unstable'",
+        "hermetic smoke green; real run + committed"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Depends MI2, MI3."
+    }
+  ]
+}

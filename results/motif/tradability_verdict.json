@@ -1,0 +1,9 @@
+{
+  "verdict": "INFORMATION-ONLY (eaten-by-cost) -- the conditional information is directional and monotone, and the regime adds correctly-signed value, but the gross edge is below the transaction-cost floor so net-of-cost return is not positive. Do NOT build a trading motif model; the signal may still serve as a risk/timing overlay or a scientific/methodological contribution.",
+  "build_trading_motif_model": false,
+  "reason": "gross edge < cost floor; gating does help (regime real)",
+  "n_survivors": 0,
+  "directional_monotone": true,
+  "gating_helps": true,
+  "figure": "D:\\aicoding\\stockagent-research\\paper\\sections\\figures\\motif_tradability.png"
+}

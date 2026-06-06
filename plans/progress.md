@@ -172,3 +172,33 @@ src/onset/summarize_motif.py -> results/motif/{summary.md,verdict.json} + paper/
 VERDICT: BUILD-THE-MOTIF-MODEL (hits=52/78, stable=6/6). The trend/vol regime is a genuine 'transcription factor' that activates the candle 'promoter' -- conditional information is permutation-significant AND positive+significant every year 2022-2025.
 This is the onset-motif line's payoff: the FIRST cross-period-robust positive result in the program. It UPGRADES the 'promoter' to a context-conditional 'onset motif' at the information-theoretic level -- a defensible, novel contribution (C6 candidate).
 4 honesty caveats baked into the verdict (information != alpha): p is n-saturated (proves >0 not large); information != net-of-cost return (deployability/production nulls stand); MI is sign-blind (may be downside/risk info); converting stable conditional info -> monotone costable long-only signal is the unsolved binding constraint. ONSET-MOTIF BACKLOG COMPLETE.
+
+## NEW LINE (research/motif-tradability) -- is the stable conditional information TRADABLE or information-only?
+onset-motif merged to main (BUILD-THE-MOTIF-MODEL on info-theoretic grounds). But MI is SIGN-BLIND -- it can't tell directional (tradable long) from variance/risk (not). This line decomposes the information by CONDITIONAL MEAN + monotonicity (not MI) and runs the SIMPLEST regime-gated, long-only, cost-aware, cross-sectional, per-year backtest. If even the simplest gate can't make net-of-cost money cross-period, do NOT build the complex motif model.
+Tasks (all $0): SGN1 tradability decomposer (directionality+monotonicity+var-vs-mean) -> RGT1 regime-gated long-only signal -> TRD1 REAL directional-vs-sign-blind diagnosis -> TRD2 REAL regime-gated net-of-cost backtest (decisive) -> TSYN TRADABLE vs INFORMATION-ONLY verdict. New SIGN-T1. onset-motif archived to prd_onset_motif_done.json.
+
+## 2026-06-06 SGN1 done -- tradability decomposer (what MI can't see)
+src/onset/tradability.py: directionality (per-regime Spearman slope of feature vs return + sign-hit-rate), monotonicity (conditional mean across feature quantile buckets + mono_coef = rank corr bucket-index vs bucket-mean), variance_vs_mean (directional_fraction = mean-dispersion / (mean+var dispersion)). All conditional-MEAN based, never MI (SIGN-T1).
+Hermetic test proves the point: a SIGN-BLIND synthetic (Var[y|x] depends on x, E[y|x]=0) has mutual_info>0.01 but directionality slope ~0 and mono_coef<0.5 -- exactly the case MI cannot distinguish from tradable. Directional synthetic scores slope>0.15, mono_coef>0.7. Next: RGT1 regime-gated signal.
+
+## 2026-06-06 RGT1 done -- simplest regime-gated long-only signal
+src/onset/regime_gate.py: regime_gated_excess (per-date long-only top-K by feature via long_only_excess, ZERO on out-of-regime dates, net of round-trip A-share cost), gated_vs_ungated (isolates the regime's marginal contribution). Reuses long_only + ashare_cost (no reimplementation). Point-in-time. 3/3 green. Next: TRD1 REAL directional-vs-sign-blind diagnosis.
+
+## 2026-06-06 TRD1 done -- directional-vs-sign-blind diagnosis (MIXED, leaning positive)
+src/onset/run_tradability.py applies SGN1 to the 6 MI3 stable winners. FINDING (VERDICT: SOME-DIRECTIONAL):
+- best_mono = 1.000 for ALL top features -- the CONDITIONAL MEAN of fwd_r5 is PERFECTLY MONOTONE across feature quantile buckets within the trend regime. This is the key positive: it is NOT pure sign-blind risk; there is a real, monotone directional core.
+- best_state Spearman slope ~0.08-0.10 (appreciable for cross-sectional selection).
+- BUT directional_fraction ~0.37-0.43: only ~40% of the feature's predictive DISPERSION is in the mean; ~60% is in the variance (sign-blind risk). close_pct_prior(0.43) and close_loc(0.40) clear the 0.4 tradable bar; dist_low_atr/onset_score/body(0.37-0.39) just miss.
+READING: the stable conditional info is a MIX -- a genuine monotone directional component plus a larger risk component. MI alone could not have told these apart. DECISIVE next test = TRD2: does the monotone directional core survive as net-of-cost, long-only, cross-period return? (prior lines warn A-share cost ~0.2% + non-stationarity usually eats slopes this size).
+
+## 2026-06-06 TRD2 done -- regime-gated net-of-cost backtest (DECISIVE: information-only)
+src/onset/run_regime_gate_bt.py: simplest regime-gated (trend-up) long-only top-10% by feature, NON-OVERLAPPING 5-day periods, net of A-share round-trip ~0.2%, date-clustered CI, per-year. VERDICT: EATEN-BY-COST-OR-NONSTATIONARY (information-only). survivors=[].
+- close_pct_prior gated Sharpe=-1.18 (CI all<0); close_loc=-2.35; onset_score=-1.39. pos_years=0/4 for all. regime_frac=0.55.
+- KEY: gating IMPROVES every feature (gated > ungated: -1.18 vs -1.89, -2.35 vs -2.71, -1.39 vs -2.04) -- the trend regime contribution is REAL and correctly-signed, consistent with the MI + monotonicity findings. But the gross directional edge (~0.1%/5d, slope 0.09 monotone) sits BELOW the ~0.2% round-trip cost floor, so net is negative every year.
+FULL CHAIN COMPLETE & CONSISTENT: MI says regime adds stable info -> TRD1 says it's a monotone directional core (~40%) + sign-blind risk (~60%) -> TRD2 says the directional core is too SMALL to beat A-share cost. The onset-motif is REAL information with a genuine directional component, but NOT net-of-cost long-tradable. Binding constraint = transaction cost, exactly as the deployability/production lines warned. Vindicates doing the cheap diagnostic BEFORE building the complex model. Next: TSYN final verdict.
+
+## 2026-06-06 TSYN done -- onset-motif tradability VERDICT: INFORMATION-ONLY (eaten-by-cost)
+src/onset/summarize_tradability.py -> results/motif/{tradability_summary.md,tradability_verdict.json} + paper/sections/figures/motif_tradability.png.
+FINAL VERDICT: INFORMATION-ONLY (eaten-by-cost). build_trading_motif_model=False. directional_monotone=True, gating_helps=True, net-of-cost survivors=0/3.
+The honest chain, complete: (1) MI -- trend regime adds STABLE conditional information every year; (2) TRD1 -- genuine MONOTONE directional core (rank-corr ~0.09, mono_coef ~1.0) + ~60% sign-blind risk; (3) TRD2 -- gating helps (regime real) but gross edge ~0.1%/5d < ~0.2% cost floor -> net Sharpe<0 every year. The onset-motif is REAL, cross-period-stable information with a real directional component (defensible scientific/methodological finding) but NOT net-of-cost long-tradable. Binding constraint = transaction cost, consistent with deployability + production lines. Cheap diagnostic BEFORE modeling avoided building a complex model on an untradable edge.
+MOTIF-TRADABILITY BACKLOG COMPLETE.
