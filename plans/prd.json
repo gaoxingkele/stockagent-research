@@ -39,7 +39,7 @@
         "hermetic: more trials -> higher SR0 threshold -> lower DSR for the same observed Sharpe; a strong genuine Sharpe at n_trials=1 stays significant; a marginal Sharpe at n_trials=50 deflates below significance"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Standard DSR formulas; pure numpy/scipy."
     },
     {

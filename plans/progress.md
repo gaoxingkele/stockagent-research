@@ -209,3 +209,6 @@ EXP-A rolling-HMM regime LightGBM (MDPI 2026) vs our regime-gating vs plain LGBM
 
 ## 2026-06-07 BENCH1 done -- rolling-HMM regime detector
 src/bench/hmm_regime.py: rolling_hmm_states (GaussianHMM, expanding past-window refit every k, Viterbi-last-of-X[:t+1] -> point-in-time; canonical state order by mean of feature 0 to stabilize labels across refits). Reimplements the MDPI 2026 rolling-HMM component. 2/2 green: recovers a 2-regime synthetic + no-future-leakage (perturbing the tail leaves earlier states identical). Next: BENCH2 Deflated Sharpe.
+
+## 2026-06-07 BENCH2 done -- Deflated Sharpe Ratio
+src/bench/deflated_sharpe.py: probabilistic_sharpe (PSR, skew/kurtosis/n-adjusted), expected_max_sharpe (SR0 = expected max of n_trials Sharpes, Bailey-LdP), deflated_sharpe (DSR = PSR vs SR0). Annualized-in -> per-period conversion via periods_per_year. 5/5 green: more trials -> higher SR0 -> lower DSR; strong single-trial Sharpe stays significant (dsr>0.95); marginal Sharpe at 50 trials deflates (psr>0.5 but dsr<0.5). Next: BENCH3 abstention.
