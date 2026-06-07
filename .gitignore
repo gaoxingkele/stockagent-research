@@ -67,6 +67,5 @@ paper/*.bbl
 paper/*.blg
 paper/*.out
 paper/*.synctex.gz
-paper/main.pdf
 .env.cloubic
 .venv-xpu/
