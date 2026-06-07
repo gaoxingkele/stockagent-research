@@ -10,6 +10,10 @@ framing, and all tables + figures.
 **Overleaf (easiest):** upload `main.tex`, `references.bib`, and `sections/figures/`,
 set compiler to pdfLaTeX, compile. `acmart.cls` is built in.
 
+**Tectonic (self-contained, what we used):** `tectonic main.tex` — auto-fetches
+acmart and all packages from CTAN on first run, emits `main.pdf`. (Note: do not load
+`amssymb` with acmart under XeTeX — it clashes with `\Bbbk`; use `amsfonts`.)
+
 **Local (TeX Live / MiKTeX):**
 ```
 cd paper
