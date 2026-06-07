@@ -42,6 +42,8 @@ results/*
 !results/production/**
 !results/motif/
 !results/motif/**
+!results/bench/
+!results/bench/**
 experiments/runs/*
 !experiments/runs/.gitkeep
 

@@ -1,0 +1,7 @@
+{
+  "expA": "Regime-Aware LightGBM (incl. rolling-HMM) is SUB-COST under our protocol",
+  "expB": "two-level abstention does NOT rescue (onset stays sub-cost)",
+  "expC": "NMI/conditional-MI baselines see an efficient-market band; our interaction info isolates regime-added information (6 hits)",
+  "any_deployable": false,
+  "overall": "NONE of the reimplemented 2025-26 SOTA baselines survive our honest protocol; like our own signals they are sub-cost. The contribution is the honest, deployment-realistic evaluation + the interaction-information probe."
+}

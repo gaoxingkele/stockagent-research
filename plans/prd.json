@@ -1,93 +1,123 @@
 {
   "repo": "gaoxingkele/stockagent-research",
-  "branchName": "research/motif-tradability",
-  "goal": "The onset-motif line proved the trend regime adds STABLE conditional INFORMATION (interaction MI >0, significant every year 2022-2025). But mutual information is SIGN-BLIND -- it cannot tell apart 'in an up-trend, this candle shape predicts higher returns' (DIRECTIONAL, tradable) from 'this candle shape predicts higher VOLATILITY / downside risk' (sign-blind, NOT directly tradable long). This line answers the binding question the MI verdict could not: is the stable conditional information DIRECTIONAL, MONOTONE, and convertible into a net-of-cost long-only return -- or is it information-only? It decomposes the information (conditional mean/direction, NOT MI) and runs the SIMPLEST possible regime-gated, long-only, cost-aware, cross-sectional backtest. If even the simplest gate can't turn the stable information into money, do NOT build the complex motif model. $0 (reuse candle features + regimes + long_only + ashare_cost; pure measurement, NO new model).",
+  "branchName": "research/regime-baseline-bench",
+  "goal": "Benchmark recent SOTA regime/uncertainty baselines AGAINST our honest A-share protocol. We do NOT try to match their published US-market numbers (different data/task, mostly no code) -- the fair, decisive test is whether THEIR methods survive OUR leakage-free, cost-aware, cross-period evaluation. Three reimplementations on D1 + our walk-forward + A-share round-trip cost + date-clustered CIs + the Deflated Sharpe Ratio (multiple-testing correction): (EXP-A) rolling-HMM regime + LightGBM (Regime-Aware LightGBM, MDPI Electronics 2026) vs our trend/vol/disaster regime-gating vs plain LGBM; (EXP-B) two-level-uncertainty ABSTENTION (When Alpha Breaks, arXiv:2603.13252) on our onset ranker vs always-on vs trend-gate; (EXP-C) NMI-normalized + permutation-significant info-theory baseline (Financial Information Theory 2511.16339 + Conditional P-threshold MI 2601.00395) to position our interaction-information C6. The story the paper buys: 'stronger regime detectors / abstention / info-theory framings, re-run under our honest protocol, are ALSO sub-cost / null' -- or, if one survives, an honest positive we must report. $0 (CPU; reuse D1 + regimes + long_only + ashare_cost + mutual_info + LightGBM; hmmlearn installed).",
   "verifyCommand": ".venv-xpu\\Scripts\\python.exe -m pytest tests/algo -q",
-  "env": "Use .venv-xpu. Reuse src/onset/candle_geometry (FEATURE_COLS), src/onset/regimes (trend/vol states + map_states_to_rows), src/onset/long_only (long_only_excess, summarize_excess), src/onset/ashare_cost (round_trip_cost, enterable, net_excess), and results/motif/mi_stability.json (the top stable feature/regime hits). D1 for _fwd_r5.",
-  "discipline": "Carry ALL prior SIGNs (esp. SIGN-001 gate=runs-correctly; SIGN-D1 cross-period; SIGN-R1 nulls valid+never gated; SIGN-M1 MI biased). SIGN-T1 (new): MI is SIGN-BLIND so it does NOT establish tradability -- directionality is measured by the CONDITIONAL MEAN / sign-hit-rate, monotonicity by the conditional QUANTILE response, and tradability by a net-of-cost, long-only, cross-sectional backtest with date-clustered CIs. A clean 'information-only' (non-tradable) verdict is a VALID, publishable finding and must be recorded, never gated.",
+  "env": "Use .venv-xpu (lightgbm 4.6, hmmlearn 0.3.3, scipy, sklearn). Reuse src/train_tcn_wf (D1, ROOT, SPLITS test windows 2025Q2/Q3/Q4, select_feature_columns), src/onset/regimes, src/onset/long_only (long_only_excess, summarize_excess, PERIODS_PER_YEAR), src/onset/ashare_cost (DEFAULT_ROUND_TRIP, round_trip_cost), src/onset/mutual_info (MI + permutation nulls), src/onset/candle_geometry, src/onset/run_mi_probe.build. New code under src/bench/.",
+  "discipline": "Carry ALL prior SIGNs (SIGN-001 gate=runs-correctly; SIGN-D1 cross-period; SIGN-R1 nulls valid + never gated; SIGN-A1 realistic A-share cost + point-in-time; SIGN-003 date-clustered CIs; SIGN-M1 permutation null for MI; SIGN-T1 tradability needs net-of-cost + conditional mean). SIGN-B1 (new): BENCHMARK FAIRNESS -- reimplement each baseline's METHOD on OUR data + OUR protocol (we cannot and must not claim to reproduce their US numbers); always report the Deflated Sharpe Ratio alongside raw Sharpe to correct for the many strategy variants tried (multiple-testing); a baseline 'winning' on raw Sharpe but failing DSR is NOT a win.",
   "acceptanceCriteria": [
     "verifyCommand (pytest tests/algo) passes",
-    "Method tasks ship a hermetic test (synthetic with a KNOWN directional vs sign-blind structure, <5s, CPU); REAL tasks gate on machinery-runs + committed json under results/motif/; findings (incl. an information-only null) recorded, never gated",
-    "Every tradability claim uses conditional MEAN/monotonicity/net-of-cost return, never raw MI (SIGN-T1); costs are realistic A-share (SIGN-A1); CIs are date-clustered (SIGN-003)",
+    "Method tasks ship a hermetic test (synthetic with KNOWN structure, <5s, CPU); REAL tasks gate on machinery-runs + committed json under results/bench/; findings (incl. a clean null / a baseline that also fails) recorded, never gated (SIGN-R1)",
+    "Every comparison reports raw Sharpe + Deflated Sharpe + date-clustered CI, net of A-share cost, per-year + pooled (SIGN-B1, SIGN-D1, SIGN-A1)",
     "$0 new LLM cost"
   ],
   "tasks": [
     {
-      "id": "SGN1",
-      "title": "Information tradability decomposer: directionality + monotonicity",
-      "deliverable": "src/onset/tradability.py",
-      "test": "tests/algo/test_tradability.py",
-      "rationale": "Separate DIRECTIONAL information (conditional mean of fwd_r moves with the feature, sign-coherent) from SIGN-BLIND information (feature predicts |fwd_r|/variance but not its sign). Plus a monotonicity score (conditional-mean response across feature quantile buckets) -- monotone => directly tradable, hump/U => not.",
+      "id": "BENCH1",
+      "title": "Rolling-HMM regime detector (Regime-Aware LightGBM baseline component)",
+      "deliverable": "src/bench/hmm_regime.py",
+      "test": "tests/algo/test_hmm_regime.py",
+      "rationale": "Point-in-time Gaussian-HMM market regime states (reimplementation of the MDPI 2026 rolling-HMM), so EXP-A can condition LightGBM on HMM regimes the same way our regimes.py provides trend/vol/disaster.",
       "acceptanceCriteria": [
-        "directionality(x, y, z_states) -> per-regime conditional-mean slope + sign-hit-rate of feature about y (NOT MI)",
-        "monotonicity(x, y, z_states, q=5) -> per-regime conditional-mean of y across feature quantile buckets + a monotonicity coefficient (e.g. rank corr of bucket index vs bucket mean)",
-        "variance_vs_mean(x, y, z_states) -> how much of the dependence is in E[y|x] (directional) vs Var[y|x] (sign-blind)",
-        "hermetic: a DIRECTIONAL synthetic (E[y|x] monotone in x, regime flips sign) scores high directionality+monotonicity; a SIGN-BLIND synthetic (Var[y|x] depends on x, E[y|x]=0) scores ~0 directionality but non-zero MI"
+        "rolling_hmm_states(market_features, n_states=3, lookback, refit_every) -> per-date integer state, POINT-IN-TIME (HMM fit only on data up to t, predict t; no future leakage)",
+        "returns a per-date Series alignable via regimes.map_states_to_rows",
+        "hermetic: a synthetic 2-regime Gaussian series (low-vol/high-vol blocks) -> recovered states separate the blocks; assert no future bar used (shifting the series shifts states)"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "SIGN-T1: conditional MEAN, not MI. This is what MI could not see."
+      "notes": "hmmlearn GaussianHMM; refit on a rolling/expanding window, predict next; cache to keep it CPU-cheap."
     },
     {
-      "id": "RGT1",
-      "title": "Simplest regime-gated long-only signal builder",
-      "deliverable": "src/onset/regime_gate.py",
-      "test": "tests/algo/test_regime_gate.py",
-      "rationale": "The minimal model: in the activating regime (e.g. trend up), rank stocks cross-sectionally by the candle feature and go long the top-K; out of regime, hold cash/neutral. Reuses long_only_excess + ashare_cost. If THIS can't make money, no graph/point-process model will.",
+      "id": "BENCH2",
+      "title": "Deflated Sharpe Ratio (multiple-testing correction)",
+      "deliverable": "src/bench/deflated_sharpe.py",
+      "test": "tests/algo/test_deflated_sharpe.py",
+      "rationale": "Bailey & Lopez de Prado Deflated Sharpe Ratio -- corrects observed Sharpe for the number of strategy variants tried, skew, kurtosis, and sample length. Required by SIGN-B1 so a baseline cannot 'win' by multiple-testing luck.",
       "acceptanceCriteria": [
-        "regime_gated_excess(panel, feature, in_regime, ret, date, k_frac, cost) -> per-date long-only top-K market-excess, zero when out of regime, net of round-trip A-share cost",
-        "point-in-time: regime + feature both use only past/known info (SIGN-A1)",
-        "hermetic: the gate is non-zero ONLY on in-regime dates and selects the top-K by feature; a constructed directional in-regime edge yields positive net excess"
+        "deflated_sharpe(sharpe, n_obs, skew, kurtosis, n_trials, periods_per_year) -> {dsr, psr, sharpe_threshold} (probabilistic + deflated Sharpe)",
+        "expected_max_sharpe(n_trials, var_sharpe) helper for the SR0 benchmark",
+        "hermetic: more trials -> higher SR0 threshold -> lower DSR for the same observed Sharpe; a strong genuine Sharpe at n_trials=1 stays significant; a marginal Sharpe at n_trials=50 deflates below significance"
       ],
       "priority": 2,
       "passes": true,
-      "notes": "Depends SGN1. Reuse long_only + ashare_cost; do NOT reimplement cost."
+      "notes": "Standard DSR formulas; pure numpy/scipy."
     },
     {
-      "id": "TRD1",
-      "title": "REAL ($0): directional-vs-sign-blind diagnosis of the stable information",
-      "deliverable": "src/onset/run_tradability.py",
-      "test": "tests/algo/test_run_tradability_smoke.py",
-      "rationale": "Apply SGN1 to the MI3 winners (top stable feature x regime hits). Is the stable conditional information DIRECTIONAL and MONOTONE, or sign-blind (variance/risk)?",
+      "id": "BENCH3",
+      "title": "Two-level-uncertainty abstention gate (When Alpha Breaks baseline)",
+      "deliverable": "src/bench/abstention.py",
+      "test": "tests/algo/test_abstention.py",
+      "rationale": "Reimplement the When-Alpha-Breaks idea: abstain (hold cash) when EITHER model-prediction uncertainty OR regime-shift instability exceeds a learned threshold. EXP-B applies it to our onset ranker.",
       "acceptanceCriteria": [
-        "for each MI3 top hit: directionality, monotonicity, variance-vs-mean split, per regime and overall",
-        "writes results/motif/tradability.json; hermetic smoke green; real run + committed; the directional-vs-sign-blind finding recorded in progress.md",
-        "$0"
+        "abstain_mask(pred_uncertainty, regime_instability, q_unc, q_reg) -> per-date boolean (True = trade) abstaining on the high-uncertainty / high-instability tail (thresholds = quantiles fit on PAST only, point-in-time)",
+        "regime_instability from a state series (e.g. recent state-switch rate) and pred_uncertainty from a dispersion proxy",
+        "hermetic: dates with high uncertainty/instability are abstained; a calm confident date trades; thresholds use only past data"
       ],
       "priority": 3,
       "passes": true,
-      "notes": "Depends SGN1. Reads results/motif/mi_stability.json for the hit list."
+      "notes": "Reuse hmm/trend state-switch rate for instability; cross-sectional score dispersion for uncertainty."
     },
     {
-      "id": "TRD2",
-      "title": "REAL ($0): simplest regime-gated long-only cost-aware backtest (decisive)",
-      "deliverable": "src/onset/run_regime_gate_bt.py",
-      "test": "tests/algo/test_run_regime_gate_bt_smoke.py",
-      "rationale": "THE decisive money test. Regime-gated long-only top-K, net of realistic A-share cost, market-excess, date-clustered bootstrap CI, per-year. Does the stable information convert to net-of-cost return that survives cross-period?",
+      "id": "EXPA",
+      "title": "REAL ($0): Regime-Aware LightGBM vs our regime-gating vs plain LGBM",
+      "deliverable": "src/bench/run_expa.py",
+      "test": "tests/algo/test_run_expa_smoke.py",
+      "rationale": "The head-to-head with the methodological twin. Same D1 + same walk-forward (SPLITS test windows 2025Q2/Q3/Q4) + same A-share cost + date-clustered CI + DSR.",
       "acceptanceCriteria": [
-        "regime-gated long-only backtest on D1 for the best MI3 feature(s) + trend/vol regime; net annualized excess + date-clustered CI, pooled and per-year (2022-2025)",
-        "compare gated vs ungated (always-on) to isolate the regime's contribution",
-        "writes results/motif/regime_gate_bt.json; hermetic smoke green; real run + committed; the net-of-cost cross-period finding recorded",
+        "arms: (a) plain LightGBM cross-sectional ranker; (b) HMM-regime-gated LGBM (BENCH1); (c) our trend/vol/disaster regime-gated long-only; long-only top-decile market-excess net of round-trip cost",
+        "per arm: raw Sharpe + Deflated Sharpe + date-clustered CI, per-year (2025Q2/Q3/Q4) + pooled; non-overlapping 5-day periods",
+        "writes results/bench/expa.json; hermetic smoke green; real run + committed; which arm (if any) survives net-of-cost recorded in progress.md",
         "$0"
       ],
       "priority": 4,
       "passes": true,
-      "notes": "Depends RGT1, TRD1. SIGN-A1 costs, SIGN-D1 cross-period, SIGN-003 clustered CI."
+      "notes": "Depends BENCH1, BENCH2. Reuse select_feature_columns (exclude _fwd*), long_only, ashare_cost, regimes."
     },
     {
-      "id": "TSYN",
-      "title": "Tradability verdict: TRADABLE vs INFORMATION-ONLY",
-      "deliverable": "src/onset/summarize_tradability.py",
-      "test": "tests/algo/test_summarize_tradability_smoke.py",
-      "rationale": "Aggregate TRD1 + TRD2 into the decisive verdict: is the stable conditional information convertible into deployable long-only alpha (=> build the motif model), or is it real-but-information-only (=> do NOT build; at most a risk/timing overlay)?",
+      "id": "EXPB",
+      "title": "REAL ($0): two-level-uncertainty abstention on the onset ranker",
+      "deliverable": "src/bench/run_expb.py",
+      "test": "tests/algo/test_run_expb_smoke.py",
+      "rationale": "Does When-Alpha-Breaks abstention rescue the sub-cost onset edge? Compare always-on vs trend-gate vs abstention-gated, net of cost, cross-period.",
       "acceptanceCriteria": [
-        "reads results/motif/{tradability.json,regime_gate_bt.json} -> results/motif/tradability_summary.md + paper/sections/figures/motif_tradability.png",
-        "verdict TRADABLE only if directional AND monotone AND net-of-cost excess CI>0 in >=2/3 years; else INFORMATION-ONLY (with which dimension failed: sign-blind / non-monotone / eaten-by-cost / non-stationary)",
-        "hermetic smoke green; real run + committed"
+        "arms: always-on onset ranker; our trend-gate; BENCH3 abstention-gate; all long-only top-decile net of cost",
+        "per arm: raw Sharpe + DSR + date-clustered CI + per-year; report fraction of periods abstained",
+        "writes results/bench/expb.json; hermetic smoke green; real run + committed; whether abstention turns net Sharpe positive recorded",
+        "$0"
       ],
       "priority": 5,
       "passes": true,
-      "notes": "Depends TRD1, TRD2. The honest bridge from the MI verdict to a deployment decision."
+      "notes": "Depends BENCH2, BENCH3. Reuse run_mi_probe.build / candle features + regimes + long_only."
+    },
+    {
+      "id": "EXPC",
+      "title": "REAL ($0): NMI-normalized + permutation info-theory baseline vs our interaction info",
+      "deliverable": "src/bench/run_expc.py",
+      "test": "tests/algo/test_run_expc_smoke.py",
+      "rationale": "Position C6: recompute our MI2/MI3 leading hits as NMI (Financial Information Theory normalization) with permutation significance (Conditional P-threshold MI), and contrast with our interaction information II=I(X;Y|Z)-I(X;Y). Shows what the existing info-theory framings would (not) reveal vs ours.",
+      "acceptanceCriteria": [
+        "compute marginal NMI + conditional NMI + permutation p for the top stable feature/regime hits; alongside our interaction info from results/motif",
+        "writes results/bench/expc.json; hermetic smoke green; real run + committed; the positioning finding (what NMI/perm baselines see vs our II) recorded",
+        "$0"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Depends nothing new (reuse mutual_info + results/motif). Add an nmi() helper if needed."
+    },
+    {
+      "id": "BSYN",
+      "title": "Benchmark synthesis: do SOTA baselines survive our honest protocol?",
+      "deliverable": "src/bench/summarize_bench.py",
+      "test": "tests/algo/test_summarize_bench_smoke.py",
+      "rationale": "Aggregate EXP-A/B/C into one verdict table + figure: under leakage-free + cost-aware + cross-period + DSR, which (if any) baseline is deployable; position our honest-findings contribution against the 2025-26 SOTA.",
+      "acceptanceCriteria": [
+        "reads results/bench/* -> results/bench/summary.md + paper/sections/figures/bench_summary.png (Sharpe vs DSR per arm, CI bars)",
+        "verdict per experiment: SURVIVES vs SUB-COST/NULL, with the binding constraint named; overall positioning sentence",
+        "hermetic smoke green; real run + committed"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "Depends EXPA, EXPB, EXPC."
     }
   ]
 }
